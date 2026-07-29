@@ -211,8 +211,8 @@ function renderCalendar() {
     const weekTasks = tasksByWeek[week.mondayStr] || [];
     const taskChips = weekTasks.map(t => {
       const catName = t.category ? t.category.name : "Sem categoria";
-      const catBg = t.category ? t.category.bg_color : "var(--lavender-soft)";
-      const catColor = t.category ? t.category.bar_color : "var(--ink-soft)";
+      const catBg = t.category ? t.category.badge_bg : "var(--lavender-soft)";
+      const catColor = t.category ? t.category.badge_text : "var(--ink-soft)";
       return `
       <div class="week-task-chip priority-${t.priority} ${t.status === 'done' ? 'done' : ''}" data-id="${t.id}">
         <span class="week-task-dot"></span>
@@ -316,8 +316,8 @@ function renderLedger() {
     const toggleClass = t.status === "done" ? "done" : t.status === "doing" ? "doing" : "";
     const toggleMark = t.status === "done" ? "💗" : "";
     const catName = t.category ? t.category.name : "Sem categoria";
-    const catBg = t.category ? t.category.bg_color : "var(--lavender-soft)";
-    const catColor = t.category ? t.category.bar_color : "var(--ink-soft)";
+    const catBg = t.category ? t.category.badge_bg : "var(--lavender-soft)";
+    const catColor = t.category ? t.category.badge_text : "var(--ink-soft)";
     return `
     <li class="ledger-row" data-id="${t.id}">
       <button class="status-toggle ${toggleClass}" data-action="toggle" title="Alterar estado">${toggleMark}</button>
@@ -468,15 +468,23 @@ const categoryForm = document.getElementById("category-form");
 const categoryNameInput = document.getElementById("category-name");
 const categoryBgInput = document.getElementById("category-bg");
 const categoryBarInput = document.getElementById("category-bar");
+const categoryBadgeBgInput = document.getElementById("category-badge-bg");
+const categoryBadgeTextInput = document.getElementById("category-badge-text");
 
 function updateCategoryPreview() {
   document.getElementById("category-preview-name").textContent = categoryNameInput.value || "Nome da categoria";
   document.getElementById("category-preview-track").style.background = categoryBgInput.value;
   document.getElementById("category-preview-fill").style.background = categoryBarInput.value;
+  const badge = document.getElementById("category-preview-badge");
+  badge.textContent = categoryNameInput.value || "Nome da categoria";
+  badge.style.background = categoryBadgeBgInput.value;
+  badge.style.color = categoryBadgeTextInput.value;
 }
 categoryNameInput.addEventListener("input", updateCategoryPreview);
 categoryBgInput.addEventListener("input", updateCategoryPreview);
 categoryBarInput.addEventListener("input", updateCategoryPreview);
+categoryBadgeBgInput.addEventListener("input", updateCategoryPreview);
+categoryBadgeTextInput.addEventListener("input", updateCategoryPreview);
 
 function openCategoryModal(id) {
   categoryForm.reset();
@@ -488,12 +496,16 @@ function openCategoryModal(id) {
     categoryNameInput.value = c.name;
     categoryBgInput.value = c.bg_color;
     categoryBarInput.value = c.bar_color;
+    categoryBadgeBgInput.value = c.badge_bg;
+    categoryBadgeTextInput.value = c.badge_text;
     deleteBtn.style.display = "inline-block";
   } else {
     document.getElementById("category-modal-eyebrow").textContent = "Nova categoria 🎨";
     document.getElementById("category-id").value = "";
     categoryBgInput.value = "#ffd6e5";
     categoryBarInput.value = "#ff8fb1";
+    categoryBadgeBgInput.value = "#ffd6e5";
+    categoryBadgeTextInput.value = "#ff5c8a";
     deleteBtn.style.display = "none";
   }
   updateCategoryPreview();
@@ -526,6 +538,8 @@ categoryForm.addEventListener("submit", async (e) => {
     name: categoryNameInput.value,
     bg_color: categoryBgInput.value,
     bar_color: categoryBarInput.value,
+    badge_bg: categoryBadgeBgInput.value,
+    badge_text: categoryBadgeTextInput.value,
   };
   try {
     if (id) {
@@ -547,6 +561,67 @@ titleEl.textContent = localStorage.getItem("thesisTitle") || "";
 titleEl.addEventListener("blur", () => {
   localStorage.setItem("thesisTitle", titleEl.textContent.trim());
 });
+
+// ---------- Motivational quote slideshow ----------
+
+const QUOTES = [
+  "A persistência é o caminho do êxito.",
+  "Um capítulo de cada vez — a tese não se escreve num dia.",
+  "Feito é melhor que perfeito.",
+  "Cada página escrita é um passo mais perto da entrega.",
+  "O trabalho duro de hoje é o diploma de amanhã.",
+  "Não desistas a meio do caminho — já vieste tão longe.",
+  "A tua tese não te define, mas a tua persistência sim.",
+  "Pequenos progressos diários somam-se a grandes conquistas.",
+  "Respira, organiza, escreve. Um passo de cada vez.",
+  "O orientador não morde — e tu és mais capaz do que pensas.",
+  "A revisão de hoje poupa dores de cabeça amanhã.",
+  "Vais conseguir. A tese não te vai vencer.",
+];
+
+let quoteIndex = 0;
+let quoteTimer = null;
+
+function renderQuoteDots() {
+  const dots = document.getElementById("quote-dots");
+  dots.innerHTML = QUOTES.map((_, i) =>
+    `<button class="quote-dot ${i === quoteIndex ? 'active' : ''}" data-index="${i}" aria-label="Frase ${i + 1}"></button>`
+  ).join("");
+  dots.querySelectorAll(".quote-dot").forEach(dot => {
+    dot.addEventListener("click", () => {
+      showQuote(Number(dot.dataset.index));
+      restartQuoteTimer();
+    });
+  });
+}
+
+function showQuote(index) {
+  quoteIndex = (index + QUOTES.length) % QUOTES.length;
+  const el = document.getElementById("quote-text");
+  el.classList.add("fading");
+  setTimeout(() => {
+    el.textContent = `"${QUOTES[quoteIndex]}"`;
+    el.classList.remove("fading");
+  }, 350);
+  renderQuoteDots();
+}
+
+function restartQuoteTimer() {
+  if (quoteTimer) clearInterval(quoteTimer);
+  quoteTimer = setInterval(() => showQuote(quoteIndex + 1), 7000);
+}
+
+document.getElementById("quote-prev").addEventListener("click", () => {
+  showQuote(quoteIndex - 1);
+  restartQuoteTimer();
+});
+document.getElementById("quote-next").addEventListener("click", () => {
+  showQuote(quoteIndex + 1);
+  restartQuoteTimer();
+});
+
+showQuote(0);
+restartQuoteTimer();
 
 // ---------- Init ----------
 

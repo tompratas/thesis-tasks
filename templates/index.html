@@ -35,6 +35,15 @@
     </div>
   </header>
 
+  <section class="panel quote-panel">
+    <button id="quote-prev" class="icon-btn" aria-label="Frase anterior">‹</button>
+    <div class="quote-body">
+      <p class="quote-text" id="quote-text">"A persistência é o caminho do êxito."</p>
+      <div class="quote-dots" id="quote-dots"></div>
+    </div>
+    <button id="quote-next" class="icon-btn" aria-label="Frase seguinte">›</button>
+  </section>
+
   <section class="shelf-section">
     <div class="panel-head">
       <p class="section-label">🌸 Progresso por capítulo</p>
@@ -177,11 +186,23 @@
       </label>
     </div>
 
+    <div class="field-row">
+      <label class="field">
+        <span>Fundo da etiqueta</span>
+        <input type="color" id="category-badge-bg" value="#ffd6e5">
+      </label>
+      <label class="field">
+        <span>Cor da letra da etiqueta</span>
+        <input type="color" id="category-badge-text" value="#ff5c8a">
+      </label>
+    </div>
+
     <div class="category-preview">
       <span class="shelf-name" id="category-preview-name">Nome da categoria</span>
       <div class="shelf-track" id="category-preview-track">
         <div class="shelf-fill" id="category-preview-fill" style="width:60%;"></div>
       </div>
+      <span class="category-tag" id="category-preview-badge" style="margin-top:8px; display:inline-block;">Nome da categoria</span>
     </div>
 
     <div class="modal-actions">

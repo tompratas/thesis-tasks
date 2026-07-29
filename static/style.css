@@ -868,3 +868,53 @@ body {
   .masthead h1 { font-size: 24px; }
   .week-task-cat { display: none; }
 }
+
+/* ---------- Motivational quote slideshow ---------- */
+
+.quote-panel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, var(--pink-soft), var(--lavender-soft));
+  border-color: var(--lavender-soft);
+}
+
+.quote-body {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.quote-text {
+  font-family: var(--font-hand);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+  min-height: 34px;
+  transition: opacity 0.35s ease;
+}
+.quote-text.fading { opacity: 0; }
+
+.quote-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.quote-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(91,58,86,0.2);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.quote-dot.active { background: var(--pink-deep); }
+
+@media (max-width: 600px) {
+  .quote-panel { padding: 14px; gap: 8px; }
+  .quote-text { font-size: 19px; }
+}

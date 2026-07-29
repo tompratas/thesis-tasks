@@ -46,6 +46,8 @@ class Category(db.Model):
     name = db.Column(db.String(120), nullable=False, unique=True)
     bg_color = db.Column(db.String(7), default="#ffd6e5")
     bar_color = db.Column(db.String(7), default="#ff8fb1")
+    badge_bg = db.Column(db.String(7), default="#ffd6e5")
+    badge_text = db.Column(db.String(7), default="#ff5c8a")
 
     def to_dict(self):
         return {
@@ -53,6 +55,8 @@ class Category(db.Model):
             "name": self.name,
             "bg_color": self.bg_color,
             "bar_color": self.bar_color,
+            "badge_bg": self.badge_bg,
+            "badge_text": self.badge_text,
         }
 
 
@@ -103,6 +107,17 @@ def run_light_migrations():
     cols = [c["name"] for c in inspector.get_columns("task")]
 
     with db.engine.connect() as conn:
+        if "category" in inspector.get_table_names():
+            cat_cols = [c["name"] for c in inspector.get_columns("category")]
+            if "badge_bg" not in cat_cols:
+                conn.execute(text("ALTER TABLE category ADD COLUMN badge_bg VARCHAR(7)"))
+                conn.execute(text("UPDATE category SET badge_bg = bg_color WHERE badge_bg IS NULL"))
+                conn.commit()
+            if "badge_text" not in cat_cols:
+                conn.execute(text("ALTER TABLE category ADD COLUMN badge_text VARCHAR(7)"))
+                conn.execute(text("UPDATE category SET badge_text = bar_color WHERE badge_text IS NULL"))
+                conn.commit()
+
         if "week_start" not in cols:
             conn.execute(text("ALTER TABLE task ADD COLUMN week_start DATE"))
             conn.commit()
@@ -126,7 +141,7 @@ def run_light_migrations():
                     else:
                         bg, bar = DEFAULT_PALETTE[i % len(DEFAULT_PALETTE)]
                         conn.execute(
-                            text("INSERT INTO category (name, bg_color, bar_color) VALUES (:name, :bg, :bar)"),
+                            text("INSERT INTO category (name, bg_color, bar_color, badge_bg, badge_text) VALUES (:name, :bg, :bar, :bg, :bar)"),
                             {"name": name, "bg": bg, "bar": bar},
                         )
                         conn.commit()
@@ -188,6 +203,8 @@ def create_category():
         name=name,
         bg_color=data.get("bg_color") or "#ffd6e5",
         bar_color=data.get("bar_color") or "#ff8fb1",
+        badge_bg=data.get("badge_bg") or "#ffd6e5",
+        badge_text=data.get("badge_text") or "#ff5c8a",
     )
     db.session.add(category)
     db.session.commit()
@@ -211,6 +228,10 @@ def update_category(category_id):
         category.bg_color = data["bg_color"]
     if "bar_color" in data:
         category.bar_color = data["bar_color"]
+    if "badge_bg" in data:
+        category.badge_bg = data["badge_bg"]
+    if "badge_text" in data:
+        category.badge_text = data["badge_text"]
 
     db.session.commit()
     return jsonify(category.to_dict())
