@@ -629,14 +629,6 @@ document.getElementById("egg-trigger").addEventListener("click", () => {
   }
 });
 
-// ---------- Thesis title persistence (local only, simple) ----------
-
-const titleEl = document.getElementById("thesis-title");
-titleEl.textContent = localStorage.getItem("thesisTitle") || "";
-titleEl.addEventListener("blur", () => {
-  localStorage.setItem("thesisTitle", titleEl.textContent.trim());
-});
-
 // ---------- Motivational quote slideshow ----------
 
 const QUOTES = [
