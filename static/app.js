@@ -60,7 +60,7 @@ function renderShelf(byCategory) {
     shelf.innerHTML = '<p class="shelf-empty">Ainda sem categorias — adicione uma tarefa para começar o cronograma.</p>';
     return;
   }
-  const colors = ["#7a2e33", "#b9861f", "#55684a", "#3d5a80", "#8a4f7d", "#6b7280"];
+  const colors = ["#ff8fb1", "#b9a3e3", "#6fd9b3", "#f6b93b", "#ff6f7d", "#8fc9e0"];
   shelf.innerHTML = entries.map(([name, d], i) => {
     const pct = d.total ? Math.round((d.done / d.total) * 100) : 0;
     const color = colors[i % colors.length];
@@ -188,7 +188,7 @@ function renderLedger() {
   list.innerHTML = tasks.map(t => {
     const overdue = t.due_date && t.due_date < todayStr && t.status !== "done";
     const toggleClass = t.status === "done" ? "done" : t.status === "doing" ? "doing" : "";
-    const toggleMark = t.status === "done" ? "✓" : "";
+    const toggleMark = t.status === "done" ? "💗" : "";
     return `
     <li class="ledger-row" data-id="${t.id}">
       <button class="status-toggle ${toggleClass}" data-action="toggle" title="Alterar estado">${toggleMark}</button>
@@ -220,7 +220,7 @@ function renderLedger() {
 }
 
 function priorityLabel(p) {
-  return { low: "Baixa", medium: "Média", high: "Alta" }[p] || p;
+  return { low: "🌱 Baixa", medium: "⭐ Média", high: "💖 Alta" }[p] || p;
 }
 function formatDate(dateStr) {
   if (!dateStr) return "—";
@@ -273,7 +273,7 @@ function openModal(id) {
   const deleteBtn = document.getElementById("delete-task-btn");
   if (id) {
     const t = state.tasks.find(t => t.id === id);
-    document.getElementById("modal-eyebrow").textContent = "Editar tarefa";
+    document.getElementById("modal-eyebrow").textContent = "Editar tarefa 💕";
     document.getElementById("task-id").value = t.id;
     document.getElementById("task-title").value = t.title;
     document.getElementById("task-notes").value = t.notes;
@@ -283,7 +283,7 @@ function openModal(id) {
     document.getElementById("task-status").value = t.status;
     deleteBtn.style.display = "inline-block";
   } else {
-    document.getElementById("modal-eyebrow").textContent = "Nova tarefa";
+    document.getElementById("modal-eyebrow").textContent = "Nova tarefa ✨";
     document.getElementById("task-id").value = "";
     if (state.dateFilter) document.getElementById("task-due").value = state.dateFilter;
     deleteBtn.style.display = "none";
