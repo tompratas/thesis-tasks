@@ -41,6 +41,22 @@ def week_monday(d):
     return d - timedelta(days=d.weekday())
 
 
+def week_range(start_raw, end_raw):
+    """Given two raw dates (either may be None), return (week_start, week_end)
+    snapped to the Monday of the starting week and the Sunday of the ending
+    week. Handles a single date (task spanning one week) and a reversed
+    order (end picked before start) gracefully."""
+    if not start_raw and not end_raw:
+        return None, None
+    if not end_raw:
+        end_raw = start_raw
+    if not start_raw:
+        start_raw = end_raw
+    if end_raw < start_raw:
+        start_raw, end_raw = end_raw, start_raw
+    return week_monday(start_raw), week_monday(end_raw) + timedelta(days=6)
+
+
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False, unique=True)
@@ -66,13 +82,13 @@ class Task(db.Model):
     notes = db.Column(db.Text, default="")
     category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True)
     category = db.relationship("Category")
-    week_start = db.Column(db.Date, nullable=True)  # Monday of the focus week
+    week_start = db.Column(db.Date, nullable=True)  # Monday of the starting focus week
+    week_end = db.Column(db.Date, nullable=True)    # Sunday of the ending focus week
     priority = db.Column(db.String(10), default="medium")
     status = db.Column(db.String(10), default="todo")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
-        week_end = (self.week_start + timedelta(days=6)) if self.week_start else None
         return {
             "id": self.id,
             "title": self.title,
@@ -80,7 +96,7 @@ class Task(db.Model):
             "category_id": self.category_id,
             "category": self.category.to_dict() if self.category else None,
             "week_start": self.week_start.isoformat() if self.week_start else None,
-            "week_end": week_end.isoformat() if week_end else None,
+            "week_end": self.week_end.isoformat() if self.week_end else None,
             "priority": self.priority,
             "status": self.status,
             "created_at": self.created_at.isoformat() if self.created_at else None,
@@ -121,6 +137,24 @@ def run_light_migrations():
         if "week_start" not in cols:
             conn.execute(text("ALTER TABLE task ADD COLUMN week_start DATE"))
             conn.commit()
+
+        if "week_end" not in cols:
+            conn.execute(text("ALTER TABLE task ADD COLUMN week_end DATE"))
+            conn.commit()
+            # Backfill: old tasks only had a single focus week (week_start),
+            # so their week_end is that same week's Sunday (week_start + 6 days).
+            if "week_start" in cols:
+                if db.engine.dialect.name == "sqlite":
+                    conn.execute(text(
+                        "UPDATE task SET week_end = date(week_start, '+6 days') "
+                        "WHERE week_start IS NOT NULL AND week_end IS NULL"
+                    ))
+                else:
+                    conn.execute(text(
+                        "UPDATE task SET week_end = week_start + INTERVAL '6 days' "
+                        "WHERE week_start IS NOT NULL AND week_end IS NULL"
+                    ))
+                conn.commit()
 
         if "category_id" not in cols:
             conn.execute(text("ALTER TABLE task ADD COLUMN category_id INTEGER"))
@@ -260,14 +294,17 @@ def create_task():
     if not data.get("title"):
         return jsonify({"error": "O título é obrigatório."}), 400
 
-    raw_week = parse_date(data.get("week_start"))
+    start_raw = parse_date(data.get("week_start"))
+    end_raw = parse_date(data.get("week_end"))
+    week_start, week_end = week_range(start_raw, end_raw)
     category_id = data.get("category_id") or None
 
     task = Task(
         title=data["title"].strip(),
         notes=data.get("notes", "").strip(),
         category_id=category_id,
-        week_start=week_monday(raw_week) if raw_week else None,
+        week_start=week_start,
+        week_end=week_end,
         priority=data.get("priority") if data.get("priority") in PRIORITIES else "medium",
         status=data.get("status") if data.get("status") in STATUSES else "todo",
     )
@@ -287,9 +324,10 @@ def update_task(task_id):
         task.notes = data["notes"].strip()
     if "category_id" in data:
         task.category_id = data["category_id"] or None
-    if "week_start" in data:
-        raw_week = parse_date(data["week_start"])
-        task.week_start = week_monday(raw_week) if raw_week else None
+    if "week_start" in data or "week_end" in data:
+        start_raw = parse_date(data["week_start"]) if "week_start" in data else task.week_start
+        end_raw = parse_date(data["week_end"]) if "week_end" in data else task.week_end
+        task.week_start, task.week_end = week_range(start_raw, end_raw)
     if "priority" in data and data["priority"] in PRIORITIES:
         task.priority = data["priority"]
     if "status" in data and data["status"] in STATUSES:
@@ -344,7 +382,7 @@ def stats():
     today = date.today()
     overdue = len([
         t for t in tasks
-        if t.week_start and (t.week_start + timedelta(days=6)) < today and t.status != "done"
+        if t.week_end and t.week_end < today and t.status != "done"
     ])
 
     return jsonify({

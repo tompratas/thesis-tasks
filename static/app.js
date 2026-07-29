@@ -36,14 +36,14 @@ function addDays(d, n) {
 function formatShort(d) {
   return `${d.getDate()} ${MONTHS_SHORT_PT[d.getMonth()]}`;
 }
-function formatWeekRange(mondayStr) {
-  if (!mondayStr) return "Sem semana definida";
-  const monday = parseDateStr(mondayStr);
-  const sunday = addDays(monday, 6);
-  if (monday.getMonth() === sunday.getMonth()) {
-    return `${monday.getDate()}–${sunday.getDate()} ${MONTHS_SHORT_PT[monday.getMonth()]}`;
+function formatWeekRange(startStr, endStr) {
+  if (!startStr || !endStr) return "Sem semana definida";
+  const start = parseDateStr(startStr);
+  const end = parseDateStr(endStr);
+  if (start.getMonth() === end.getMonth()) {
+    return `${start.getDate()}–${end.getDate()} ${MONTHS_SHORT_PT[start.getMonth()]}`;
   }
-  return `${formatShort(monday)} – ${formatShort(sunday)}`;
+  return `${formatShort(start)} – ${formatShort(end)}`;
 }
 
 // ---------- API helpers ----------
@@ -166,8 +166,14 @@ function renderCalendar() {
 
   const tasksByWeek = {};
   state.tasks.forEach(t => {
-    if (!t.week_start) return;
-    (tasksByWeek[t.week_start] = tasksByWeek[t.week_start] || []).push(t);
+    if (!t.week_start || !t.week_end) return;
+    let cursor = parseDateStr(t.week_start);
+    const end = parseDateStr(t.week_end);
+    while (cursor <= end) {
+      const key = toDateStr(cursor);
+      (tasksByWeek[key] = tasksByWeek[key] || []).push(t);
+      cursor = addDays(cursor, 7);
+    }
   });
   const milestonesByDate = {};
   state.milestones.forEach(m => {
@@ -329,7 +335,7 @@ function renderLedger() {
         </div>
       </div>
       <span class="priority-mark ${t.priority}">${priorityLabel(t.priority)}</span>
-      <span class="due-date ${overdue ? 'overdue' : ''}">${formatWeekRange(t.week_start)}</span>
+      <span class="due-date ${overdue ? 'overdue' : ''}">${formatWeekRange(t.week_start, t.week_end)}</span>
       <button class="ledger-delete" data-action="delete" title="Eliminar">✕</button>
     </li>`;
   }).join("");
@@ -391,16 +397,23 @@ document.getElementById("category-filter").addEventListener("change", (e) => {
 
 const modal = document.getElementById("task-modal");
 const form = document.getElementById("task-form");
-const weekInput = document.getElementById("task-week");
+const weekStartInput = document.getElementById("task-week-start");
+const weekEndInput = document.getElementById("task-week-end");
 const weekHint = document.getElementById("task-week-hint");
 
 function updateWeekHint() {
-  if (!weekInput.value) { weekHint.textContent = ""; return; }
-  const d = parseDateStr(weekInput.value);
-  const monday = mondayOf(d);
-  weekHint.textContent = `Semana de ${formatWeekRange(toDateStr(monday))}`;
+  if (!weekStartInput.value && !weekEndInput.value) { weekHint.textContent = ""; return; }
+  let s = parseDateStr(weekStartInput.value || weekEndInput.value);
+  let e = parseDateStr(weekEndInput.value || weekStartInput.value);
+  if (e < s) { [s, e] = [e, s]; }
+  const monday = mondayOf(s);
+  const sunday = addDays(mondayOf(e), 6);
+  const range = formatWeekRange(toDateStr(monday), toDateStr(sunday));
+  const spanDays = Math.round((sunday - monday) / (1000 * 60 * 60 * 24));
+  weekHint.textContent = spanDays <= 6 ? `Semana de ${range}` : `Semanas de ${range}`;
 }
-weekInput.addEventListener("change", updateWeekHint);
+weekStartInput.addEventListener("change", updateWeekHint);
+weekEndInput.addEventListener("change", updateWeekHint);
 
 function openModal(id) {
   form.reset();
@@ -413,7 +426,8 @@ function openModal(id) {
     document.getElementById("task-title").value = t.title;
     document.getElementById("task-notes").value = t.notes;
     document.getElementById("task-category").value = t.category_id || "";
-    weekInput.value = t.week_start || "";
+    weekStartInput.value = t.week_start || "";
+    weekEndInput.value = t.week_end || "";
     document.getElementById("task-priority").value = t.priority;
     document.getElementById("task-status").value = t.status;
     deleteBtn.style.display = "inline-block";
@@ -448,7 +462,8 @@ form.addEventListener("submit", async (e) => {
     title: document.getElementById("task-title").value,
     notes: document.getElementById("task-notes").value,
     category_id: document.getElementById("task-category").value || null,
-    week_start: weekInput.value || null,
+    week_start: weekStartInput.value || null,
+    week_end: weekEndInput.value || null,
     priority: document.getElementById("task-priority").value,
     status: document.getElementById("task-status").value,
   };

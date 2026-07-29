@@ -739,7 +739,8 @@ body {
   font-size: 15px;
   font-weight: 700;
   color: var(--pink-deep);
-  margin-top: 4px;
+  margin-top: -8px;
+  margin-bottom: 14px;
 }
 
 /* ---------- Category management ---------- */
