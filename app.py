@@ -12,7 +12,9 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 # survives redeploys on Render's free web-service tier.
 db_url = os.environ.get("DATABASE_URL", "sqlite:///" + os.path.join(app.instance_path, "tasks.db"))
 if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+    db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+elif db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
 
 os.makedirs(app.instance_path, exist_ok=True)
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
