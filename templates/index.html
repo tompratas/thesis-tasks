@@ -36,7 +36,10 @@
   </header>
 
   <section class="shelf-section">
-    <p class="section-label">🌸 Progresso por capítulo</p>
+    <div class="panel-head">
+      <p class="section-label">🌸 Progresso por capítulo</p>
+      <button id="new-category-btn" class="btn-ghost">+ Nova categoria 🎨</button>
+    </div>
     <div id="shelf" class="shelf"></div>
   </section>
 
@@ -112,8 +115,9 @@
     <div class="field-row">
       <label class="field">
         <span>Categoria / capítulo</span>
-        <input type="text" id="task-category" list="category-suggestions" placeholder="Ex: Revisão de literatura">
-        <datalist id="category-suggestions"></datalist>
+        <select id="task-category">
+          <option value="">Sem categoria</option>
+        </select>
       </label>
       <label class="field">
         <span>Semana de foco</span>
@@ -145,6 +149,45 @@
       <button type="button" id="delete-task-btn" class="btn-ghost danger" style="display:none;">Eliminar</button>
       <div class="modal-actions-right">
         <button type="button" id="cancel-task-btn" class="btn-ghost">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Category form dialog -->
+<div id="category-modal" class="modal-backdrop" style="display:none;">
+  <form id="category-form" class="modal-card">
+    <p class="modal-eyebrow" id="category-modal-eyebrow">Nova categoria 🎨</p>
+    <input type="hidden" id="category-id">
+
+    <label class="field">
+      <span>Nome</span>
+      <input type="text" id="category-name" required placeholder="Ex: Revisão de literatura">
+    </label>
+
+    <div class="field-row">
+      <label class="field">
+        <span>Cor de fundo (barra)</span>
+        <input type="color" id="category-bg" value="#ffd6e5">
+      </label>
+      <label class="field">
+        <span>Cor de progresso</span>
+        <input type="color" id="category-bar" value="#ff8fb1">
+      </label>
+    </div>
+
+    <div class="category-preview">
+      <span class="shelf-name" id="category-preview-name">Nome da categoria</span>
+      <div class="shelf-track" id="category-preview-track">
+        <div class="shelf-fill" id="category-preview-fill" style="width:60%;"></div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" id="delete-category-btn" class="btn-ghost danger" style="display:none;">Eliminar</button>
+      <div class="modal-actions-right">
+        <button type="button" id="cancel-category-btn" class="btn-ghost">Cancelar</button>
         <button type="submit" class="btn-primary">Guardar</button>
       </div>
     </div>

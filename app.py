@@ -26,17 +26,42 @@ db = SQLAlchemy(app)
 STATUSES = ["todo", "doing", "done"]
 PRIORITIES = ["low", "medium", "high"]
 
+DEFAULT_PALETTE = [
+    ("#ffd6e5", "#ff8fb1"),
+    ("#ecdff9", "#b9a3e3"),
+    ("#d7f7ea", "#6fd9b3"),
+    ("#ffe9b3", "#f6b93b"),
+    ("#ffd7da", "#ff6f7d"),
+    ("#dcefff", "#6fb3e0"),
+]
+
 
 def week_monday(d):
     """Return the Monday (start of week) for any given date."""
     return d - timedelta(days=d.weekday())
 
 
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False, unique=True)
+    bg_color = db.Column(db.String(7), default="#ffd6e5")
+    bar_color = db.Column(db.String(7), default="#ff8fb1")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "bg_color": self.bg_color,
+            "bar_color": self.bar_color,
+        }
+
+
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     notes = db.Column(db.Text, default="")
-    category = db.Column(db.String(120), default="Geral")
+    category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True)
+    category = db.relationship("Category")
     week_start = db.Column(db.Date, nullable=True)  # Monday of the focus week
     priority = db.Column(db.String(10), default="medium")
     status = db.Column(db.String(10), default="todo")
@@ -48,7 +73,8 @@ class Task(db.Model):
             "id": self.id,
             "title": self.title,
             "notes": self.notes or "",
-            "category": self.category or "Geral",
+            "category_id": self.category_id,
+            "category": self.category.to_dict() if self.category else None,
             "week_start": self.week_start.isoformat() if self.week_start else None,
             "week_end": week_end.isoformat() if week_end else None,
             "priority": self.priority,
@@ -67,15 +93,50 @@ class Milestone(db.Model):
 
 
 def run_light_migrations():
-    """Add newly-introduced columns to an already-existing database
-    without wiping data (keeps things working across redeploys once a
-    persistent Postgres database is attached)."""
+    """Add newly-introduced columns/tables to an already-existing database
+    without wiping data, so things keep working across redeploys once a
+    persistent Postgres database is attached."""
     inspector = inspect(db.engine)
-    if "task" in inspector.get_table_names():
-        cols = [c["name"] for c in inspector.get_columns("task")]
+    if "task" not in inspector.get_table_names():
+        return
+
+    cols = [c["name"] for c in inspector.get_columns("task")]
+
+    with db.engine.connect() as conn:
         if "week_start" not in cols:
-            with db.engine.connect() as conn:
-                conn.execute(text("ALTER TABLE task ADD COLUMN week_start DATE"))
+            conn.execute(text("ALTER TABLE task ADD COLUMN week_start DATE"))
+            conn.commit()
+
+        if "category_id" not in cols:
+            conn.execute(text("ALTER TABLE task ADD COLUMN category_id INTEGER"))
+            conn.commit()
+
+            # Backfill: turn old free-text categories into real Category rows
+            if "category" in cols:
+                rows = conn.execute(text(
+                    "SELECT DISTINCT category FROM task WHERE category IS NOT NULL AND category <> ''"
+                )).fetchall()
+                for i, row in enumerate(rows):
+                    name = row[0]
+                    existing = conn.execute(
+                        text("SELECT id FROM category WHERE name = :name"), {"name": name}
+                    ).fetchone()
+                    if existing:
+                        cat_id = existing[0]
+                    else:
+                        bg, bar = DEFAULT_PALETTE[i % len(DEFAULT_PALETTE)]
+                        conn.execute(
+                            text("INSERT INTO category (name, bg_color, bar_color) VALUES (:name, :bg, :bar)"),
+                            {"name": name, "bg": bg, "bar": bar},
+                        )
+                        conn.commit()
+                        cat_id = conn.execute(
+                            text("SELECT id FROM category WHERE name = :name"), {"name": name}
+                        ).fetchone()[0]
+                    conn.execute(
+                        text("UPDATE task SET category_id = :cid WHERE category = :name"),
+                        {"cid": cat_id, "name": name},
+                    )
                 conn.commit()
 
 
@@ -106,6 +167,64 @@ def index():
     return send_from_directory(app.template_folder, "index.html")
 
 
+# --- Routes: categories ---------------------------------------------------
+
+@app.route("/api/categories", methods=["GET"])
+def list_categories():
+    categories = Category.query.order_by(Category.id.asc()).all()
+    return jsonify([c.to_dict() for c in categories])
+
+
+@app.route("/api/categories", methods=["POST"])
+def create_category():
+    data = request.get_json(force=True)
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "O nome é obrigatório."}), 400
+    if Category.query.filter_by(name=name).first():
+        return jsonify({"error": "Já existe uma categoria com esse nome."}), 400
+
+    category = Category(
+        name=name,
+        bg_color=data.get("bg_color") or "#ffd6e5",
+        bar_color=data.get("bar_color") or "#ff8fb1",
+    )
+    db.session.add(category)
+    db.session.commit()
+    return jsonify(category.to_dict()), 201
+
+
+@app.route("/api/categories/<int:category_id>", methods=["PUT"])
+def update_category(category_id):
+    category = Category.query.get_or_404(category_id)
+    data = request.get_json(force=True)
+
+    if "name" in data:
+        new_name = data["name"].strip()
+        if not new_name:
+            return jsonify({"error": "O nome é obrigatório."}), 400
+        clash = Category.query.filter(Category.name == new_name, Category.id != category_id).first()
+        if clash:
+            return jsonify({"error": "Já existe uma categoria com esse nome."}), 400
+        category.name = new_name
+    if "bg_color" in data:
+        category.bg_color = data["bg_color"]
+    if "bar_color" in data:
+        category.bar_color = data["bar_color"]
+
+    db.session.commit()
+    return jsonify(category.to_dict())
+
+
+@app.route("/api/categories/<int:category_id>", methods=["DELETE"])
+def delete_category(category_id):
+    category = Category.query.get_or_404(category_id)
+    Task.query.filter_by(category_id=category_id).update({"category_id": None})
+    db.session.delete(category)
+    db.session.commit()
+    return jsonify({"deleted": category_id})
+
+
 # --- Routes: tasks -------------------------------------------------------
 
 @app.route("/api/tasks", methods=["GET"])
@@ -121,10 +240,12 @@ def create_task():
         return jsonify({"error": "O título é obrigatório."}), 400
 
     raw_week = parse_date(data.get("week_start"))
+    category_id = data.get("category_id") or None
+
     task = Task(
         title=data["title"].strip(),
         notes=data.get("notes", "").strip(),
-        category=(data.get("category") or "Geral").strip(),
+        category_id=category_id,
         week_start=week_monday(raw_week) if raw_week else None,
         priority=data.get("priority") if data.get("priority") in PRIORITIES else "medium",
         status=data.get("status") if data.get("status") in STATUSES else "todo",
@@ -143,8 +264,8 @@ def update_task(task_id):
         task.title = data["title"].strip()
     if "notes" in data:
         task.notes = data["notes"].strip()
-    if "category" in data:
-        task.category = (data["category"] or "Geral").strip()
+    if "category_id" in data:
+        task.category_id = data["category_id"] or None
     if "week_start" in data:
         raw_week = parse_date(data["week_start"])
         task.week_start = week_monday(raw_week) if raw_week else None
@@ -205,20 +326,11 @@ def stats():
         if t.week_start and (t.week_start + timedelta(days=6)) < today and t.status != "done"
     ])
 
-    by_category = {}
-    for t in tasks:
-        cat = t.category or "Geral"
-        by_category.setdefault(cat, {"total": 0, "done": 0})
-        by_category[cat]["total"] += 1
-        if t.status == "done":
-            by_category[cat]["done"] += 1
-
     return jsonify({
         "total": total,
         "done": done,
         "overdue": overdue,
         "percent": round((done / total) * 100) if total else 0,
-        "by_category": by_category,
     })
 
 

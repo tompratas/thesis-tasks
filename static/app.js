@@ -1,6 +1,7 @@
 const state = {
   tasks: [],
   milestones: [],
+  categories: [],
   statusFilter: "all",
   categoryFilter: "all",
   calYear: new Date().getFullYear(),
@@ -70,15 +71,17 @@ async function apiDelete(url) {
 // ---------- Load & render ----------
 
 async function loadAll() {
-  const [tasks, milestones, stats] = await Promise.all([
+  const [tasks, milestones, categories, stats] = await Promise.all([
     apiGet("/api/tasks"),
     apiGet("/api/milestones"),
+    apiGet("/api/categories"),
     apiGet("/api/stats"),
   ]);
   state.tasks = tasks;
   state.milestones = milestones;
+  state.categories = categories;
   renderStats(stats);
-  renderShelf(stats.by_category);
+  renderShelf();
   renderCategoryOptions();
   renderCalendar();
   renderMilestoneList();
@@ -94,38 +97,52 @@ function renderStats(stats) {
   document.getElementById("ring-progress").style.strokeDashoffset = offset;
 }
 
-function renderShelf(byCategory) {
+function renderShelf() {
   const shelf = document.getElementById("shelf");
-  const entries = Object.entries(byCategory || {});
-  if (!entries.length) {
-    shelf.innerHTML = '<p class="shelf-empty">Ainda sem categorias — adiciona uma tarefa para começar o cronograma.</p>';
+  if (!state.categories.length) {
+    shelf.innerHTML = '<p class="shelf-empty">Ainda sem categorias — cria a primeira com o botão acima ✨</p>';
     return;
   }
-  const colors = ["#ff8fb1", "#b9a3e3", "#6fd9b3", "#f6b93b", "#ff6f7d", "#8fc9e0"];
-  shelf.innerHTML = entries.map(([name, d], i) => {
-    const pct = d.total ? Math.round((d.done / d.total) * 100) : 0;
-    const color = colors[i % colors.length];
+  shelf.innerHTML = state.categories.map(c => {
+    const tasksInCat = state.tasks.filter(t => t.category_id === c.id);
+    const total = tasksInCat.length;
+    const done = tasksInCat.filter(t => t.status === "done").length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
     return `
-      <div class="shelf-row">
-        <span class="shelf-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
-        <div class="shelf-track">
-          <div class="shelf-fill" style="width:${pct}%; background:${color};"></div>
+      <div class="shelf-row" data-id="${c.id}">
+        <span class="shelf-name">${escapeHtml(c.name)}</span>
+        <div class="shelf-track" style="background:${c.bg_color};">
+          <div class="shelf-fill" style="width:${pct}%; background:${c.bar_color};"></div>
         </div>
-        <span class="shelf-pct">${d.done}/${d.total}</span>
+        <span class="shelf-pct">${done}/${total}</span>
+        <button class="shelf-edit" data-action="edit-category" title="Editar categoria">✎</button>
       </div>`;
   }).join("");
+
+  shelf.querySelectorAll('[data-action="edit-category"]').forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = Number(btn.closest(".shelf-row").dataset.id);
+      openCategoryModal(id);
+    });
+  });
 }
 
 function renderCategoryOptions() {
-  const categories = [...new Set(state.tasks.map(t => t.category || "Geral"))].sort();
-  const select = document.getElementById("category-filter");
-  const current = select.value;
-  select.innerHTML = '<option value="all">Todas as categorias</option>' +
-    categories.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-  select.value = categories.includes(current) ? current : "all";
+  const taskSelect = document.getElementById("task-category");
+  const currentTaskValue = taskSelect.value;
+  taskSelect.innerHTML = '<option value="">Sem categoria</option>' +
+    state.categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+  taskSelect.value = currentTaskValue;
 
-  const datalist = document.getElementById("category-suggestions");
-  datalist.innerHTML = categories.map(c => `<option value="${escapeHtml(c)}">`).join("");
+  const filterSelect = document.getElementById("category-filter");
+  const currentFilterValue = filterSelect.value;
+  filterSelect.innerHTML =
+    '<option value="all">Todas as categorias</option>' +
+    '<option value="none">Sem categoria</option>' +
+    state.categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+  filterSelect.value = ["all", "none", ...state.categories.map(c => String(c.id))].includes(currentFilterValue)
+    ? currentFilterValue
+    : "all";
 }
 
 // ---------- Calendar (week-row agenda view) ----------
@@ -192,12 +209,17 @@ function renderCalendar() {
     }).join("");
 
     const weekTasks = tasksByWeek[week.mondayStr] || [];
-    const taskChips = weekTasks.map(t => `
+    const taskChips = weekTasks.map(t => {
+      const catName = t.category ? t.category.name : "Sem categoria";
+      const catBg = t.category ? t.category.bg_color : "var(--lavender-soft)";
+      const catColor = t.category ? t.category.bar_color : "var(--ink-soft)";
+      return `
       <div class="week-task-chip priority-${t.priority} ${t.status === 'done' ? 'done' : ''}" data-id="${t.id}">
         <span class="week-task-dot"></span>
         <span class="week-task-title">${escapeHtml(t.title)}</span>
-        <span class="week-task-cat">${escapeHtml(t.category || 'Geral')}</span>
-      </div>`).join("");
+        <span class="week-task-cat" style="background:${catBg}; color:${catColor};">${escapeHtml(catName)}</span>
+      </div>`;
+    }).join("");
 
     return `<div class="week-block ${isCurrentWeek ? 'current-week' : ''}">
       <div class="week-days">${dayCells}</div>
@@ -271,7 +293,11 @@ function renderLedger() {
   let tasks = [...state.tasks];
 
   if (state.statusFilter !== "all") tasks = tasks.filter(t => t.status === state.statusFilter);
-  if (state.categoryFilter !== "all") tasks = tasks.filter(t => (t.category || "Geral") === state.categoryFilter);
+  if (state.categoryFilter === "none") {
+    tasks = tasks.filter(t => !t.category_id);
+  } else if (state.categoryFilter !== "all") {
+    tasks = tasks.filter(t => String(t.category_id) === state.categoryFilter);
+  }
 
   const list = document.getElementById("task-list");
   const empty = document.getElementById("empty-state");
@@ -289,13 +315,16 @@ function renderLedger() {
     const overdue = t.week_end && t.week_end < todayStr && t.status !== "done";
     const toggleClass = t.status === "done" ? "done" : t.status === "doing" ? "doing" : "";
     const toggleMark = t.status === "done" ? "💗" : "";
+    const catName = t.category ? t.category.name : "Sem categoria";
+    const catBg = t.category ? t.category.bg_color : "var(--lavender-soft)";
+    const catColor = t.category ? t.category.bar_color : "var(--ink-soft)";
     return `
     <li class="ledger-row" data-id="${t.id}">
       <button class="status-toggle ${toggleClass}" data-action="toggle" title="Alterar estado">${toggleMark}</button>
       <div class="ledger-main" data-action="edit">
         <div class="ledger-title ${t.status === 'done' ? 'done' : ''}">${escapeHtml(t.title)}</div>
         <div class="ledger-meta">
-          <span class="category-tag">${escapeHtml(t.category || "Geral")}</span>
+          <span class="category-tag" style="background:${catBg}; color:${catColor};">${escapeHtml(catName)}</span>
           <span>${STATUS_LABEL[t.status]}</span>
         </div>
       </div>
@@ -383,7 +412,7 @@ function openModal(id) {
     document.getElementById("task-id").value = t.id;
     document.getElementById("task-title").value = t.title;
     document.getElementById("task-notes").value = t.notes;
-    document.getElementById("task-category").value = t.category;
+    document.getElementById("task-category").value = t.category_id || "";
     weekInput.value = t.week_start || "";
     document.getElementById("task-priority").value = t.priority;
     document.getElementById("task-status").value = t.status;
@@ -418,7 +447,7 @@ form.addEventListener("submit", async (e) => {
   const payload = {
     title: document.getElementById("task-title").value,
     notes: document.getElementById("task-notes").value,
-    category: document.getElementById("task-category").value || "Geral",
+    category_id: document.getElementById("task-category").value || null,
     week_start: weekInput.value || null,
     priority: document.getElementById("task-priority").value,
     status: document.getElementById("task-status").value,
@@ -430,6 +459,85 @@ form.addEventListener("submit", async (e) => {
   }
   closeModal();
   await loadAll();
+});
+
+// ---------- Category modal ----------
+
+const categoryModal = document.getElementById("category-modal");
+const categoryForm = document.getElementById("category-form");
+const categoryNameInput = document.getElementById("category-name");
+const categoryBgInput = document.getElementById("category-bg");
+const categoryBarInput = document.getElementById("category-bar");
+
+function updateCategoryPreview() {
+  document.getElementById("category-preview-name").textContent = categoryNameInput.value || "Nome da categoria";
+  document.getElementById("category-preview-track").style.background = categoryBgInput.value;
+  document.getElementById("category-preview-fill").style.background = categoryBarInput.value;
+}
+categoryNameInput.addEventListener("input", updateCategoryPreview);
+categoryBgInput.addEventListener("input", updateCategoryPreview);
+categoryBarInput.addEventListener("input", updateCategoryPreview);
+
+function openCategoryModal(id) {
+  categoryForm.reset();
+  const deleteBtn = document.getElementById("delete-category-btn");
+  if (id) {
+    const c = state.categories.find(c => c.id === id);
+    document.getElementById("category-modal-eyebrow").textContent = "Editar categoria 🎨";
+    document.getElementById("category-id").value = c.id;
+    categoryNameInput.value = c.name;
+    categoryBgInput.value = c.bg_color;
+    categoryBarInput.value = c.bar_color;
+    deleteBtn.style.display = "inline-block";
+  } else {
+    document.getElementById("category-modal-eyebrow").textContent = "Nova categoria 🎨";
+    document.getElementById("category-id").value = "";
+    categoryBgInput.value = "#ffd6e5";
+    categoryBarInput.value = "#ff8fb1";
+    deleteBtn.style.display = "none";
+  }
+  updateCategoryPreview();
+  categoryModal.style.display = "flex";
+  categoryNameInput.focus();
+}
+
+function closeCategoryModal() {
+  categoryModal.style.display = "none";
+}
+
+document.getElementById("new-category-btn").addEventListener("click", () => openCategoryModal(null));
+document.getElementById("cancel-category-btn").addEventListener("click", closeCategoryModal);
+categoryModal.addEventListener("click", (e) => { if (e.target === categoryModal) closeCategoryModal(); });
+
+document.getElementById("delete-category-btn").addEventListener("click", async () => {
+  const id = Number(document.getElementById("category-id").value);
+  if (id) {
+    if (!confirm("Eliminar esta categoria? As tarefas ficam sem categoria.")) return;
+    await apiDelete(`/api/categories/${id}`);
+    closeCategoryModal();
+    await loadAll();
+  }
+});
+
+categoryForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const id = document.getElementById("category-id").value;
+  const payload = {
+    name: categoryNameInput.value,
+    bg_color: categoryBgInput.value,
+    bar_color: categoryBarInput.value,
+  };
+  try {
+    if (id) {
+      await apiSend(`/api/categories/${id}`, "PUT", payload);
+    } else {
+      await apiSend("/api/categories", "POST", payload);
+    }
+    closeCategoryModal();
+    await loadAll();
+  } catch (err) {
+    alert("Não foi possível guardar a categoria (o nome já pode existir).");
+  }
 });
 
 // ---------- Thesis title persistence (local only, simple) ----------
