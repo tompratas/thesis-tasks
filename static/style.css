@@ -546,3 +546,194 @@ body {
   .field-row { grid-template-columns: 1fr; }
   .masthead h1 { font-size: 30px; }
 }
+
+/* ---------- Weekly calendar ---------- */
+
+.cal-weeks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.week-block {
+  border: 3px solid var(--pink-soft);
+  border-radius: 18px;
+  padding: 10px;
+  background: var(--panel-soft);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.week-block.current-week {
+  border-color: var(--pink-deep);
+  background: linear-gradient(180deg, var(--pink-soft), var(--panel-soft));
+  box-shadow: 0 4px 0 -1px var(--pink-deep);
+}
+
+.week-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.week-day-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 2px;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--ink);
+  min-height: 28px;
+}
+.week-day-cell.muted { color: #d9bcd0; }
+.week-day-cell.today .week-day-num {
+  background: var(--pink-deep);
+  color: white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.milestone-badge {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 9px;
+  background: var(--butter-soft);
+  color: #a8710c;
+  border-radius: 8px;
+  padding: 2px 5px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.week-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.week-task-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+.week-task-chip:hover { border-color: var(--pink-soft); }
+.week-task-chip.done { opacity: 0.55; }
+.week-task-chip.done .week-task-title { text-decoration: line-through; }
+
+.week-task-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.week-task-chip.priority-low .week-task-dot { background: var(--mint); }
+.week-task-chip.priority-medium .week-task-dot { background: var(--butter); }
+.week-task-chip.priority-high .week-task-dot { background: var(--coral); }
+
+.week-task-title {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.week-task-cat {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10px;
+  color: var(--ink-soft);
+  background: var(--lavender-soft);
+  border-radius: 8px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ---------- Milestones box ---------- */
+
+.milestone-box {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 3px dashed var(--pink-soft);
+}
+.milestone-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 13.5px;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+.milestone-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.milestone-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--butter-soft);
+  border-radius: 12px;
+  padding: 6px 12px;
+}
+.milestone-empty { font-family: var(--font-hand); font-size: 17px; color: var(--ink-soft); margin: 0 0 10px; }
+.milestone-delete {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.milestone-delete:hover { color: var(--coral); }
+
+.milestone-form {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.milestone-form input[type="text"] {
+  flex: 1;
+  min-width: 120px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 2px solid var(--pink-soft);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--ink);
+}
+.milestone-form input[type="date"] {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 2px solid var(--pink-soft);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--ink);
+}
+.milestone-form .btn-ghost { padding: 8px 14px; font-size: 12.5px; }
+
+.field-hint {
+  display: block;
+  font-family: var(--font-hand);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pink-deep);
+  margin-top: 4px;
+}

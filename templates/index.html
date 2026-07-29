@@ -46,16 +46,26 @@
       <div class="panel-head">
         <p class="section-label">🗓️ Cronograma</p>
         <div class="cal-nav">
+          <button id="cal-today" class="text-link" type="button">hoje</button>
           <button id="cal-prev" class="icon-btn" aria-label="Mês anterior">‹</button>
           <span id="cal-month" class="cal-month-label"></span>
           <button id="cal-next" class="icon-btn" aria-label="Mês seguinte">›</button>
         </div>
       </div>
       <div class="cal-weekdays">
-        <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+        <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
       </div>
-      <div id="cal-grid" class="cal-grid"></div>
-      <button id="cal-clear" class="text-link" style="display:none;">Limpar filtro de data ✕</button>
+      <div id="cal-weeks" class="cal-weeks"></div>
+
+      <div class="milestone-box">
+        <p class="milestone-title">🎓 Marcos importantes</p>
+        <div id="milestone-list" class="milestone-list"></div>
+        <form id="milestone-form" class="milestone-form">
+          <input type="text" id="milestone-title-input" placeholder="Nome do marco" required>
+          <input type="date" id="milestone-date-input" required>
+          <button type="submit" class="btn-ghost">+ Marco</button>
+        </form>
+      </div>
     </section>
 
     <section class="panel ledger-panel">
@@ -106,8 +116,9 @@
         <datalist id="category-suggestions"></datalist>
       </label>
       <label class="field">
-        <span>Data limite</span>
-        <input type="date" id="task-due">
+        <span>Semana de foco</span>
+        <input type="date" id="task-week">
+        <span id="task-week-hint" class="field-hint"></span>
       </label>
     </div>
 
