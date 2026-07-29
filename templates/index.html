@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cronograma da Tese</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="masthead-left">
+      <p class="eyebrow">Caderno de investigação</p>
+      <h1 id="thesis-title" contenteditable="true" data-placeholder="Título da tese...">A minha tese</h1>
+    </div>
+    <div class="masthead-right">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 120 120" class="ring">
+          <circle cx="60" cy="60" r="52" class="ring-track"/>
+          <circle cx="60" cy="60" r="52" class="ring-progress" id="ring-progress"/>
+        </svg>
+        <div class="ring-label">
+          <span id="ring-percent">0%</span>
+          <span class="ring-sub">concluído</span>
+        </div>
+      </div>
+      <div class="stat-line">
+        <div><span id="stat-total">0</span><small>tarefas</small></div>
+        <div class="overdue"><span id="stat-overdue">0</span><small>em atraso</small></div>
+      </div>
+    </div>
+  </header>
+
+  <section class="shelf-section">
+    <p class="section-label">Progresso por capítulo</p>
+    <div id="shelf" class="shelf"></div>
+  </section>
+
+  <main class="workspace">
+
+    <section class="panel calendar-panel">
+      <div class="panel-head">
+        <p class="section-label">Cronograma</p>
+        <div class="cal-nav">
+          <button id="cal-prev" class="icon-btn" aria-label="Mês anterior">‹</button>
+          <span id="cal-month" class="cal-month-label"></span>
+          <button id="cal-next" class="icon-btn" aria-label="Mês seguinte">›</button>
+        </div>
+      </div>
+      <div class="cal-weekdays">
+        <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+      </div>
+      <div id="cal-grid" class="cal-grid"></div>
+      <button id="cal-clear" class="text-link" style="display:none;">Limpar filtro de data ✕</button>
+    </section>
+
+    <section class="panel ledger-panel">
+      <div class="panel-head">
+        <p class="section-label">Tarefas</p>
+        <button id="new-task-btn" class="btn-primary">+ Nova tarefa</button>
+      </div>
+
+      <div class="filters">
+        <div class="chip-group" id="status-filters">
+          <button class="chip active" data-status="all">Todas</button>
+          <button class="chip" data-status="todo">A fazer</button>
+          <button class="chip" data-status="doing">Em curso</button>
+          <button class="chip" data-status="done">Concluídas</button>
+        </div>
+        <select id="category-filter" class="category-select">
+          <option value="all">Todas as categorias</option>
+        </select>
+      </div>
+
+      <ul id="task-list" class="ledger"></ul>
+      <p id="empty-state" class="empty-state" style="display:none;">Sem tarefas para mostrar. A folha está em branco — comece por adicionar uma.</p>
+    </section>
+
+  </main>
+</div>
+
+<!-- Task form dialog -->
+<div id="task-modal" class="modal-backdrop" style="display:none;">
+  <form id="task-form" class="modal-card">
+    <p class="modal-eyebrow" id="modal-eyebrow">Nova tarefa</p>
+    <input type="hidden" id="task-id">
+
+    <label class="field">
+      <span>Título</span>
+      <input type="text" id="task-title" required placeholder="Ex: Rever capítulo 3">
+    </label>
+
+    <label class="field">
+      <span>Notas</span>
+      <textarea id="task-notes" rows="2" placeholder="Detalhes, referências, próximos passos..."></textarea>
+    </label>
+
+    <div class="field-row">
+      <label class="field">
+        <span>Categoria / capítulo</span>
+        <input type="text" id="task-category" list="category-suggestions" placeholder="Ex: Revisão de literatura">
+        <datalist id="category-suggestions"></datalist>
+      </label>
+      <label class="field">
+        <span>Data limite</span>
+        <input type="date" id="task-due">
+      </label>
+    </div>
+
+    <div class="field-row">
+      <label class="field">
+        <span>Prioridade</span>
+        <select id="task-priority">
+          <option value="low">Baixa</option>
+          <option value="medium" selected>Média</option>
+          <option value="high">Alta</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Estado</span>
+        <select id="task-status">
+          <option value="todo">A fazer</option>
+          <option value="doing">Em curso</option>
+          <option value="done">Concluída</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" id="delete-task-btn" class="btn-ghost danger" style="display:none;">Eliminar</button>
+      <div class="modal-actions-right">
+        <button type="button" id="cancel-task-btn" class="btn-ghost">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: cronograma-tese
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # Se adicionar uma base de dados PostgreSQL no Render (recomendado,
+      # ver README), descomente as linhas abaixo e ligue a variável:
+      # - key: DATABASE_URL
+      #   fromDatabase:
+      #     name: cronograma-tese-db
+      #     property: connectionString
+
+# Descomente para criar também uma base de dados PostgreSQL gratuita:
+# databases:
+#   - name: cronograma-tese-db
+#     plan: free
