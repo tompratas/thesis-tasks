@@ -556,10 +556,28 @@ categoryForm.addEventListener("submit", async (e) => {
 
 // ---------- Secret theme panel (easter egg) ----------
 
-const DEFAULT_THEME = { bg: "#fff5fa", outline: "#ffd6e5", title: "#5b3a56" };
+const DEFAULT_THEME = {
+  bgType: "solid",
+  bg: "#fff5fa",
+  bgFrom: "#fff5fa",
+  bgTo: "#ffd6e5",
+  bgDirection: "135deg",
+  outline: "#ffd6e5",
+  title: "#5b3a56",
+};
+
+function computeBgValue(theme) {
+  if (theme.bgType === "gradient") {
+    if (theme.bgDirection === "radial") {
+      return `radial-gradient(circle, ${theme.bgFrom}, ${theme.bgTo})`;
+    }
+    return `linear-gradient(${theme.bgDirection}, ${theme.bgFrom}, ${theme.bgTo})`;
+  }
+  return theme.bg;
+}
 
 function applyTheme(theme) {
-  document.documentElement.style.setProperty("--bg", theme.bg);
+  document.documentElement.style.setProperty("--bg", computeBgValue(theme));
   document.documentElement.style.setProperty("--outline-color", theme.outline);
   document.documentElement.style.setProperty("--title-color", theme.title);
 }
@@ -567,48 +585,80 @@ function applyTheme(theme) {
 function loadSavedTheme() {
   try {
     const saved = JSON.parse(localStorage.getItem("customTheme"));
-    if (saved && saved.bg && saved.outline && saved.title) {
-      applyTheme(saved);
-      return saved;
+    if (saved && saved.outline && saved.title) {
+      const merged = { ...DEFAULT_THEME, ...saved };
+      applyTheme(merged);
+      return merged;
     }
   } catch (e) { /* ignore malformed storage */ }
-  return DEFAULT_THEME;
+  return { ...DEFAULT_THEME };
 }
 
 let currentTheme = loadSavedTheme();
 
 const themeModal = document.getElementById("theme-modal");
 const themeBgInput = document.getElementById("theme-bg");
+const themeBgFromInput = document.getElementById("theme-bg-from");
+const themeBgToInput = document.getElementById("theme-bg-to");
+const themeBgDirectionInput = document.getElementById("theme-bg-direction");
 const themeOutlineInput = document.getElementById("theme-outline");
 const themeTitleInput = document.getElementById("theme-title");
+const bgSolidFields = document.getElementById("bg-solid-fields");
+const bgGradientFields = document.getElementById("bg-gradient-fields");
+
+function setBgTypeUI(type) {
+  document.querySelectorAll("#bg-type-toggle .chip").forEach(c => c.classList.toggle("active", c.dataset.type === type));
+  bgSolidFields.style.display = type === "solid" ? "block" : "none";
+  bgGradientFields.style.display = type === "gradient" ? "block" : "none";
+}
+
+document.getElementById("bg-type-toggle").addEventListener("click", (e) => {
+  const btn = e.target.closest(".chip");
+  if (!btn) return;
+  currentTheme.bgType = btn.dataset.type;
+  setBgTypeUI(currentTheme.bgType);
+  applyTheme(currentTheme);
+  localStorage.setItem("customTheme", JSON.stringify(currentTheme));
+});
 
 function openThemeModal() {
   themeBgInput.value = currentTheme.bg;
+  themeBgFromInput.value = currentTheme.bgFrom;
+  themeBgToInput.value = currentTheme.bgTo;
+  themeBgDirectionInput.value = currentTheme.bgDirection;
   themeOutlineInput.value = currentTheme.outline;
   themeTitleInput.value = currentTheme.title;
+  setBgTypeUI(currentTheme.bgType);
   themeModal.style.display = "flex";
 }
 
 function handleThemeInputChange() {
   currentTheme = {
+    ...currentTheme,
     bg: themeBgInput.value,
+    bgFrom: themeBgFromInput.value,
+    bgTo: themeBgToInput.value,
+    bgDirection: themeBgDirectionInput.value,
     outline: themeOutlineInput.value,
     title: themeTitleInput.value,
   };
   applyTheme(currentTheme);
   localStorage.setItem("customTheme", JSON.stringify(currentTheme));
 }
-themeBgInput.addEventListener("input", handleThemeInputChange);
-themeOutlineInput.addEventListener("input", handleThemeInputChange);
-themeTitleInput.addEventListener("input", handleThemeInputChange);
+[themeBgInput, themeBgFromInput, themeBgToInput, themeBgDirectionInput, themeOutlineInput, themeTitleInput]
+  .forEach(input => input.addEventListener("input", handleThemeInputChange));
 
 document.getElementById("theme-reset-btn").addEventListener("click", () => {
   currentTheme = { ...DEFAULT_THEME };
   applyTheme(currentTheme);
   localStorage.removeItem("customTheme");
   themeBgInput.value = currentTheme.bg;
+  themeBgFromInput.value = currentTheme.bgFrom;
+  themeBgToInput.value = currentTheme.bgTo;
+  themeBgDirectionInput.value = currentTheme.bgDirection;
   themeOutlineInput.value = currentTheme.outline;
   themeTitleInput.value = currentTheme.title;
+  setBgTypeUI(currentTheme.bgType);
 });
 
 document.getElementById("theme-close-btn").addEventListener("click", () => {

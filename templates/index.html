@@ -222,9 +222,42 @@
     <p class="theme-intro">Personaliza as cores da app. As mudanças ficam guardadas neste navegador.</p>
 
     <label class="field">
-      <span>Cor de fundo</span>
-      <input type="color" id="theme-bg">
+      <span>Tipo de fundo</span>
+      <div class="chip-group" id="bg-type-toggle">
+        <button type="button" class="chip active" data-type="solid">Sólido</button>
+        <button type="button" class="chip" data-type="gradient">Gradiente</button>
+      </div>
     </label>
+
+    <div id="bg-solid-fields">
+      <label class="field">
+        <span>Cor de fundo</span>
+        <input type="color" id="theme-bg">
+      </label>
+    </div>
+
+    <div id="bg-gradient-fields" style="display:none;">
+      <div class="field-row">
+        <label class="field">
+          <span>Cor 1</span>
+          <input type="color" id="theme-bg-from">
+        </label>
+        <label class="field">
+          <span>Cor 2</span>
+          <input type="color" id="theme-bg-to">
+        </label>
+      </div>
+      <label class="field">
+        <span>Direção</span>
+        <select id="theme-bg-direction">
+          <option value="135deg">Diagonal ↘</option>
+          <option value="to right">Esquerda → Direita</option>
+          <option value="to bottom">Cima → Baixo</option>
+          <option value="radial">Circular</option>
+        </select>
+      </label>
+    </div>
+
     <label class="field">
       <span>Contorno das caixas</span>
       <input type="color" id="theme-outline">
