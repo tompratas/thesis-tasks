@@ -554,6 +554,81 @@ categoryForm.addEventListener("submit", async (e) => {
   }
 });
 
+// ---------- Secret theme panel (easter egg) ----------
+
+const DEFAULT_THEME = { bg: "#fff5fa", outline: "#ffd6e5", title: "#5b3a56" };
+
+function applyTheme(theme) {
+  document.documentElement.style.setProperty("--bg", theme.bg);
+  document.documentElement.style.setProperty("--outline-color", theme.outline);
+  document.documentElement.style.setProperty("--title-color", theme.title);
+}
+
+function loadSavedTheme() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("customTheme"));
+    if (saved && saved.bg && saved.outline && saved.title) {
+      applyTheme(saved);
+      return saved;
+    }
+  } catch (e) { /* ignore malformed storage */ }
+  return DEFAULT_THEME;
+}
+
+let currentTheme = loadSavedTheme();
+
+const themeModal = document.getElementById("theme-modal");
+const themeBgInput = document.getElementById("theme-bg");
+const themeOutlineInput = document.getElementById("theme-outline");
+const themeTitleInput = document.getElementById("theme-title");
+
+function openThemeModal() {
+  themeBgInput.value = currentTheme.bg;
+  themeOutlineInput.value = currentTheme.outline;
+  themeTitleInput.value = currentTheme.title;
+  themeModal.style.display = "flex";
+}
+
+function handleThemeInputChange() {
+  currentTheme = {
+    bg: themeBgInput.value,
+    outline: themeOutlineInput.value,
+    title: themeTitleInput.value,
+  };
+  applyTheme(currentTheme);
+  localStorage.setItem("customTheme", JSON.stringify(currentTheme));
+}
+themeBgInput.addEventListener("input", handleThemeInputChange);
+themeOutlineInput.addEventListener("input", handleThemeInputChange);
+themeTitleInput.addEventListener("input", handleThemeInputChange);
+
+document.getElementById("theme-reset-btn").addEventListener("click", () => {
+  currentTheme = { ...DEFAULT_THEME };
+  applyTheme(currentTheme);
+  localStorage.removeItem("customTheme");
+  themeBgInput.value = currentTheme.bg;
+  themeOutlineInput.value = currentTheme.outline;
+  themeTitleInput.value = currentTheme.title;
+});
+
+document.getElementById("theme-close-btn").addEventListener("click", () => {
+  themeModal.style.display = "none";
+});
+themeModal.addEventListener("click", (e) => { if (e.target === themeModal) themeModal.style.display = "none"; });
+
+// 5 clicks on the header sparkle line within 2.5s unlocks the secret panel
+let eggClicks = 0;
+let eggTimer = null;
+document.getElementById("egg-trigger").addEventListener("click", () => {
+  eggClicks++;
+  clearTimeout(eggTimer);
+  eggTimer = setTimeout(() => { eggClicks = 0; }, 2500);
+  if (eggClicks >= 5) {
+    eggClicks = 0;
+    openThemeModal();
+  }
+});
+
 // ---------- Thesis title persistence (local only, simple) ----------
 
 const titleEl = document.getElementById("thesis-title");

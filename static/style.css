@@ -18,8 +18,12 @@
   --coral-soft: #ffd7da;
 
   --font-display: "Baloo 2", sans-serif;
-  --font-body: "Quicksand", sans-serif;
-  --font-hand: "Caveat", cursive;
+  --font-body: "Baloo 2", sans-serif;
+  --font-hand: "Baloo 2", sans-serif;
+
+  /* Customizable via the hidden theme panel (easter egg) */
+  --outline-color: #ffd6e5;
+  --title-color: #5b3a56;
 }
 
 * { box-sizing: border-box; }
@@ -33,7 +37,7 @@ body {
     var(--bg);
   color: var(--ink);
   font-family: var(--font-body);
-  font-weight: 600;
+  font-weight: 700;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -53,8 +57,8 @@ body {
   padding: 22px 28px;
   background: var(--panel);
   border-radius: 28px;
-  border: 4px solid var(--pink-soft);
-  box-shadow: 0 10px 0 -3px var(--pink-soft), 0 14px 26px rgba(255,140,180,0.18);
+  border: 4px solid var(--outline-color);
+  box-shadow: 0 10px 0 -3px var(--outline-color), 0 14px 26px rgba(255,140,180,0.18);
   margin-bottom: 28px;
   flex-wrap: wrap;
 }
@@ -76,7 +80,7 @@ body {
   line-height: 1.15;
   outline: none;
   min-width: 240px;
-  color: var(--ink);
+  color: var(--title-color);
 }
 .masthead h1:empty:before {
   content: attr(data-placeholder);
@@ -156,7 +160,7 @@ body {
   gap: 10px;
   background: var(--panel);
   border-radius: 24px;
-  border: 4px solid var(--lavender-soft);
+  border: 4px solid var(--outline-color);
   padding: 18px 20px;
 }
 
@@ -229,10 +233,10 @@ body {
 
 .panel {
   background: var(--panel);
-  border: 4px solid var(--pink-soft);
+  border: 4px solid var(--outline-color);
   border-radius: 26px;
   padding: 22px;
-  box-shadow: 0 8px 0 -3px var(--pink-soft), 0 12px 24px rgba(255,140,180,0.14);
+  box-shadow: 0 8px 0 -3px var(--outline-color), 0 12px 24px rgba(255,140,180,0.14);
 }
 
 .panel-head {
@@ -483,7 +487,7 @@ body {
 
 .modal-card {
   background: var(--panel);
-  border: 4px solid var(--pink-soft);
+  border: 4px solid var(--outline-color);
   border-radius: 28px;
   padding: 28px;
   width: 100%;
@@ -557,7 +561,7 @@ body {
 }
 
 .week-block {
-  border: 3px solid var(--pink-soft);
+  border: 3px solid var(--outline-color);
   border-radius: 18px;
   padding: 10px;
   background: var(--panel-soft);
@@ -733,7 +737,7 @@ body {
   display: block;
   font-family: var(--font-hand);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--pink-deep);
   margin-top: 4px;
 }
@@ -889,7 +893,7 @@ body {
 .quote-text {
   font-family: var(--font-hand);
   font-size: 24px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ink);
   margin: 0;
   min-height: 34px;
@@ -918,3 +922,16 @@ body {
   .quote-panel { padding: 14px; gap: 8px; }
   .quote-text { font-size: 19px; }
 }
+
+/* ---------- Secret theme panel (easter egg) ---------- */
+
+#egg-trigger { cursor: default; user-select: none; }
+
+.theme-intro {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+}
+
+#theme-modal .field input[type="color"] { width: 100%; }

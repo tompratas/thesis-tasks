@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cronograma da Tese</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Quicksand:wght@500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -14,7 +14,7 @@
 
   <header class="masthead">
     <div class="masthead-left">
-      <p class="eyebrow">✨ o meu cantinho da tese ✨</p>
+      <p class="eyebrow" id="egg-trigger">✨ o meu cantinho da tese ✨</p>
       <h1 id="thesis-title" contenteditable="true" data-placeholder="Título da tese...">A minha tese</h1>
     </div>
     <div class="masthead-right">
@@ -213,6 +213,34 @@
       </div>
     </div>
   </form>
+</div>
+
+<!-- Secret theme panel (easter egg) -->
+<div id="theme-modal" class="modal-backdrop" style="display:none;">
+  <div class="modal-card">
+    <p class="modal-eyebrow">🥚 Modo secreto encontrado!</p>
+    <p class="theme-intro">Personaliza as cores da app. As mudanças ficam guardadas neste navegador.</p>
+
+    <label class="field">
+      <span>Cor de fundo</span>
+      <input type="color" id="theme-bg">
+    </label>
+    <label class="field">
+      <span>Contorno das caixas</span>
+      <input type="color" id="theme-outline">
+    </label>
+    <label class="field">
+      <span>Cor do título</span>
+      <input type="color" id="theme-title">
+    </label>
+
+    <div class="modal-actions">
+      <button type="button" id="theme-reset-btn" class="btn-ghost danger">Repor original</button>
+      <div class="modal-actions-right">
+        <button type="button" id="theme-close-btn" class="btn-primary">Fechar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="/static/app.js"></script>
