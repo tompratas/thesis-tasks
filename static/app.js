@@ -706,7 +706,7 @@ const QUOTES = [
   "A tua tese não te define, mas a tua persistência sim.",
   "Pequenos progressos diários somam-se a grandes conquistas.",
   "Respira, organiza, escreve. Um passo de cada vez.",
-  "O orientador não morde — e tu és mais capaz do que pensas.",
+  "TAMO MUITO BEBE TENHO MUITO ORGULHO EM TI",
   "A revisão de hoje poupa dores de cabeça amanhã.",
   "Vais conseguir. A tese não te vai vencer.",
 ];
