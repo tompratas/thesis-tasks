@@ -697,18 +697,27 @@ document.getElementById("egg-trigger").addEventListener("click", () => {
 // ---------- Motivational quote slideshow ----------
 
 const QUOTES = [
-  "A persistência é o caminho do êxito.",
-  "Um capítulo de cada vez — a tese não se escreve num dia.",
   "Feito é melhor que perfeito.",
   "Cada página escrita é um passo mais perto da entrega.",
   "O trabalho duro de hoje é o diploma de amanhã.",
-  "Não desistas a meio do caminho — já vieste tão longe.",
-  "A tua tese não te define, mas a tua persistência sim.",
   "Pequenos progressos diários somam-se a grandes conquistas.",
-  "Respira, organiza, escreve. Um passo de cada vez.",
-  "O orientador não morde — e tu és mais capaz do que pensas.",
-  "A revisão de hoje poupa dores de cabeça amanhã.",
-  "Vais conseguir. A tese não te vai vencer.",
+  "Um passo de cada vez.",
+  "Tu consegues!",
+  "Tenho orgulho em ti",
+  "Eu sei que não está a ser fácil, mas tu estás a dar o teu melhor orgulha te disso",
+  "Be patient. Sometimes you have to go through the worst to get the best",
+  "Im here for you, and will cheer for you every step of the way",
+  "I know its been hard for you lately but you're doing so well! I just wanted to tell how proud I am of you for trying your best and noy giving up",
+  "Its scary because its new not because you're incapable",
+  "Stop comparing your path to someone else's",
+  "You dont grow when you're confortable",
+  "Day by day, not in a day",
+  "You are not everything you want to be yet, but you are a lot of things you wanted to be 2 years ago"
+  "You're going to figure it out like you always do",
+  "What is meant for tou will always find it's way",
+  "Your thesis is an opportunity to learn more, not a statement on your worth.",
+  "Where you're standing was once the goal",
+  "To be a star you must burn"
 ];
 
 let quoteIndex = 0;
@@ -740,7 +749,7 @@ function showQuote(index) {
 
 function restartQuoteTimer() {
   if (quoteTimer) clearInterval(quoteTimer);
-  quoteTimer = setInterval(() => showQuote(quoteIndex + 1), 7000);
+  quoteTimer = setInterval(() => showQuote(quoteIndex + 1), 30000);
 }
 
 document.getElementById("quote-prev").addEventListener("click", () => {
