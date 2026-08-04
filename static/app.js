@@ -712,7 +712,7 @@ const QUOTES = [
   "Stop comparing your path to someone else's",
   "You dont grow when you're confortable",
   "Day by day, not in a day",
-  "You are not everything you want to be yet, but you are a lot of things you wanted to be 2 years ago"
+  "You are not everything you want to be yet, but you are a lot of things you wanted to be 2 years ago",
   "You're going to figure it out like you always do",
   "What is meant for tou will always find it's way",
   "Your thesis is an opportunity to learn more, not a statement on your worth.",
