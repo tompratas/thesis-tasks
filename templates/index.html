@@ -52,6 +52,106 @@
     <div id="shelf" class="shelf"></div>
   </section>
 
+  <section class="panel pomodoro-panel">
+    <p class="section-label">🍅 Pomodoro</p>
+
+    <div class="pomo-duration-row">
+      <div class="pomo-duration-box">
+        <span class="pomo-duration-label">🧠 Trabalho</span>
+        <span class="pomo-duration-value" id="pomo-work-display">20 min</span>
+        <button type="button" class="btn-ghost" id="pomo-work-add">+5 min</button>
+      </div>
+      <div class="pomo-duration-box">
+        <span class="pomo-duration-label">☕ Intervalo</span>
+        <span class="pomo-duration-value" id="pomo-break-display">5 min</span>
+        <button type="button" class="btn-ghost" id="pomo-break-add">+1 min</button>
+      </div>
+    </div>
+
+    <div class="pomodoro-body">
+      <div class="pomodoro-ring-wrap">
+        <svg viewBox="0 0 120 120" class="pomodoro-ring">
+          <circle cx="60" cy="60" r="52" class="pomo-ring-track"/>
+          <circle cx="60" cy="60" r="52" class="pomo-ring-progress" id="pomo-ring-progress"/>
+        </svg>
+        <div class="pomodoro-time-label">
+          <span id="pomo-time">25:00</span>
+          <span id="pomo-phase" class="pomo-phase">Pronta?</span>
+        </div>
+      </div>
+
+      <div class="otter-pool" id="otter-pool">
+        <div class="pool-waves"></div>
+        <svg id="otter-svg" class="otter-svg" viewBox="0 0 16 10" shape-rendering="crispEdges">
+          <g id="otter-tail">
+            <rect x="1" y="5" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="2" y="5" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="0" y="6" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="1" y="6" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="2" y="6" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="1" y="7" width="1" height="1" fill="#8b5e3c"/>
+          </g>
+          <g id="otter-body">
+            <rect x="9" y="1" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="10" y="1" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="11" y="1" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="9" y="2" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="10" y="2" width="1" height="1" fill="#f0dcc0"/>
+            <rect x="11" y="2" width="1" height="1" fill="#3a2415"/>
+            <rect x="12" y="2" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="8" y="3" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="9" y="3" width="1" height="1" fill="#f0dcc0"/>
+            <rect x="10" y="3" width="1" height="1" fill="#f0dcc0"/>
+            <rect x="11" y="3" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="12" y="3" width="1" height="1" fill="#ff8fb1"/>
+            <rect x="4" y="4" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="5" y="4" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="6" y="4" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="7" y="4" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="8" y="4" width="1" height="1" fill="#f0dcc0"/>
+            <rect x="9" y="4" width="1" height="1" fill="#f0dcc0"/>
+            <rect x="10" y="4" width="1" height="1" fill="#f0dcc0"/>
+            <rect x="11" y="4" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="3" y="5" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="4" y="5" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="5" y="5" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="6" y="5" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="7" y="5" width="1" height="1" fill="#f0dcc0"/>
+            <rect x="8" y="5" width="1" height="1" fill="#f0dcc0"/>
+            <rect x="9" y="5" width="1" height="1" fill="#f0dcc0"/>
+            <rect x="10" y="5" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="11" y="5" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="4" y="6" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="5" y="6" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="6" y="6" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="7" y="6" width="1" height="1" fill="#f0dcc0"/>
+            <rect x="8" y="6" width="1" height="1" fill="#f0dcc0"/>
+            <rect x="9" y="6" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="10" y="6" width="1" height="1" fill="#8b5e3c"/>
+          </g>
+          <g id="otter-flipper">
+            <rect x="7" y="7" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="8" y="7" width="1" height="1" fill="#8b5e3c"/>
+            <rect x="9" y="7" width="1" height="1" fill="#8b5e3c"/>
+          </g>
+        </svg>
+      </div>
+
+      <p id="pomo-round-label" class="pomo-cycle-label">Pronta para começar? 🦦</p>
+
+      <div id="pomo-notice" class="pomo-notice" style="display:none;">
+        <p id="pomo-notice-text" class="pomo-notice-text"></p>
+        <button type="button" id="pomo-notice-btn" class="btn-primary"></button>
+      </div>
+
+      <div class="pomodoro-controls">
+        <button id="pomo-start-btn" class="btn-primary">▶ Começar</button>
+        <button id="pomo-pause-btn" class="btn-ghost" style="display:none;">⏸ Pausar</button>
+        <button id="pomo-reset-btn" class="btn-ghost danger">↺ Reiniciar</button>
+      </div>
+    </div>
+  </section>
+
   <main class="workspace">
 
     <section class="panel calendar-panel">

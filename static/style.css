@@ -936,3 +936,223 @@ body {
 }
 
 #theme-modal .field input[type="color"] { width: 100%; }
+
+/* ---------- Pomodoro ---------- */
+
+.pomodoro-panel {
+  margin-bottom: 24px;
+}
+
+.pomo-duration-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.pomo-duration-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel-soft);
+  border: 3px solid var(--outline-color);
+  border-radius: 16px;
+  padding: 12px;
+}
+.pomo-duration-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.pomo-duration-value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--ink);
+}
+.pomo-duration-box .btn-ghost {
+  padding: 6px 14px;
+  font-size: 12px;
+}
+.pomo-duration-box .btn-ghost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pomo-notice {
+  background: var(--butter-soft);
+  border: 3px solid var(--butter);
+  border-radius: 16px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  max-width: 320px;
+}
+.pomo-notice-text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+  margin: 0;
+}
+
+.pomodoro-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.pomodoro-ring-wrap {
+  position: relative;
+  width: 150px;
+  height: 150px;
+}
+.pomodoro-ring { width: 150px; height: 150px; transform: rotate(-90deg); }
+.pomo-ring-track { fill: none; stroke: var(--panel-soft); stroke-width: 10; }
+.pomo-ring-progress {
+  fill: none;
+  stroke: var(--pink-deep);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 327;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.4s linear, stroke 0.4s ease;
+}
+.pomodoro-time-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#pomo-time {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 28px;
+  color: var(--ink);
+}
+.pomo-phase {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--pink-deep);
+  margin-top: 2px;
+}
+
+/* Otter swim pool */
+
+.otter-pool {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  height: 72px;
+  border-radius: 16px;
+  border: 3px solid var(--outline-color);
+  background: linear-gradient(180deg, #bfe6f5, #8fc9e0);
+  overflow: hidden;
+}
+
+.pool-waves {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255,255,255,0.35) 0px,
+    rgba(255,255,255,0.35) 6px,
+    transparent 6px,
+    transparent 18px
+  );
+  background-size: 24px 100%;
+  animation: wave-scroll 3s linear infinite;
+  opacity: 0.6;
+}
+
+@keyframes wave-scroll {
+  from { background-position-x: 0; }
+  to { background-position-x: -24px; }
+}
+
+.otter-svg {
+  position: absolute;
+  top: 50%;
+  left: -20%;
+  width: 88px;
+  height: 55px;
+  image-rendering: pixelated;
+  transform: translateY(-50%);
+  animation: otter-swim-across 5s linear infinite, otter-bob 0.9s ease-in-out infinite;
+}
+
+@keyframes otter-swim-across {
+  from { left: -20%; }
+  to { left: 110%; }
+}
+@keyframes otter-bob {
+  0%, 100% { margin-top: -3px; }
+  50% { margin-top: 3px; }
+}
+
+#otter-tail {
+  transform-origin: 2px 6px;
+  animation: tail-wag 0.5s steps(2) infinite;
+}
+#otter-flipper {
+  transform-origin: 8px 7px;
+  animation: flipper-paddle 0.5s steps(2) infinite reverse;
+}
+@keyframes tail-wag {
+  0%, 100% { transform: rotate(-14deg); }
+  50% { transform: rotate(14deg); }
+}
+@keyframes flipper-paddle {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(18deg); }
+}
+
+/* Resting state (break time): otter floats still in the middle */
+.otter-pool.resting .otter-svg {
+  animation: otter-bob-rest 2.2s ease-in-out infinite;
+  left: 50%;
+  margin-left: -44px;
+}
+.otter-pool.resting #otter-tail,
+.otter-pool.resting #otter-flipper {
+  animation-play-state: paused;
+  transform: rotate(0deg);
+}
+@keyframes otter-bob-rest {
+  0%, 100% { margin-top: -2px; }
+  50% { margin-top: 2px; }
+}
+
+.pomo-cycle-label {
+  font-family: var(--font-hand);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin: 0;
+  text-align: center;
+}
+
+.pomodoro-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
+  .pomo-duration-row { grid-template-columns: 1fr; gap: 10px; }
+  .otter-pool { max-width: 100%; height: 60px; }
+  .otter-svg { width: 70px; height: 44px; }
+  .pomodoro-ring-wrap { width: 120px; height: 120px; }
+  .pomodoro-ring { width: 120px; height: 120px; }
+  #pomo-time { font-size: 22px; }
+}

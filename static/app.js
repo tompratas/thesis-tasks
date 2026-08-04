@@ -706,7 +706,7 @@ const QUOTES = [
   "A tua tese não te define, mas a tua persistência sim.",
   "Pequenos progressos diários somam-se a grandes conquistas.",
   "Respira, organiza, escreve. Um passo de cada vez.",
-  "TAMO MUITO BEBE TENHO MUITO ORGULHO EM TI",
+  "O orientador não morde — e tu és mais capaz do que pensas.",
   "A revisão de hoje poupa dores de cabeça amanhã.",
   "Vais conseguir. A tese não te vai vencer.",
 ];
@@ -754,6 +754,171 @@ document.getElementById("quote-next").addEventListener("click", () => {
 
 showQuote(0);
 restartQuoteTimer();
+
+// ---------- Pomodoro ----------
+
+const RING_CIRCUMFERENCE = 327;
+
+const pomo = {
+  workMin: 20,
+  breakMin: 5,
+  phase: "setup", // "setup" | "work" | "work-done" | "break" | "break-done"
+  remainingSeconds: 20 * 60,
+  running: false,
+  round: 1,
+  intervalId: null,
+};
+
+const pomoWorkDisplay = document.getElementById("pomo-work-display");
+const pomoBreakDisplay = document.getElementById("pomo-break-display");
+const pomoWorkAddBtn = document.getElementById("pomo-work-add");
+const pomoBreakAddBtn = document.getElementById("pomo-break-add");
+const pomoTimeEl = document.getElementById("pomo-time");
+const pomoPhaseEl = document.getElementById("pomo-phase");
+const pomoRoundLabelEl = document.getElementById("pomo-round-label");
+const pomoNoticeEl = document.getElementById("pomo-notice");
+const pomoNoticeTextEl = document.getElementById("pomo-notice-text");
+const pomoNoticeBtn = document.getElementById("pomo-notice-btn");
+const pomoRingProgress = document.getElementById("pomo-ring-progress");
+const pomoStartBtn = document.getElementById("pomo-start-btn");
+const pomoPauseBtn = document.getElementById("pomo-pause-btn");
+const pomoResetBtn = document.getElementById("pomo-reset-btn");
+const otterPool = document.getElementById("otter-pool");
+
+function formatMMSS(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function phaseTotalSeconds() {
+  const min = pomo.phase === "break" ? pomo.breakMin : pomo.workMin;
+  return min * 60;
+}
+
+function renderPomodoro() {
+  pomoWorkDisplay.textContent = `${pomo.workMin} min`;
+  pomoBreakDisplay.textContent = `${pomo.breakMin} min`;
+
+  const adjustDisabled = pomo.running;
+  pomoWorkAddBtn.disabled = adjustDisabled;
+  pomoBreakAddBtn.disabled = adjustDisabled;
+
+  pomoTimeEl.textContent = formatMMSS(pomo.remainingSeconds);
+
+  const phaseLabels = {
+    setup: "Pronta?",
+    work: "🧠 Foco",
+    "work-done": "⏰ Trabalho concluído",
+    break: "☕ Intervalo",
+    "break-done": "🎉 Intervalo concluído",
+  };
+  pomoPhaseEl.textContent = phaseLabels[pomo.phase];
+
+  const total = phaseTotalSeconds();
+  const fraction = total ? pomo.remainingSeconds / total : 0;
+  pomoRingProgress.style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - fraction);
+  pomoRingProgress.style.stroke = pomo.phase === "break" ? "var(--mint)" : "var(--pink-deep)";
+
+  otterPool.classList.toggle("resting", !(pomo.phase === "work" && pomo.running));
+
+  pomoRoundLabelEl.style.display = (pomo.phase === "work" || pomo.phase === "break") ? "block" : "none";
+  pomoRoundLabelEl.textContent = `Ronda ${pomo.round}`;
+
+  if (pomo.phase === "work-done" || pomo.phase === "break-done") {
+    pomoNoticeEl.style.display = "flex";
+    if (pomo.phase === "work-done") {
+      pomoNoticeTextEl.textContent = "⏰ Acabou o período de trabalho!";
+      pomoNoticeBtn.textContent = "☕ Começar intervalo";
+    } else {
+      pomoNoticeTextEl.textContent = "☕ Acabou o período de intervalo!";
+      pomoNoticeBtn.textContent = "🧠 Começar período de trabalho";
+    }
+  } else {
+    pomoNoticeEl.style.display = "none";
+  }
+
+  pomoStartBtn.style.display = pomo.phase === "setup" ? "inline-block" : "none";
+  pomoPauseBtn.style.display = (pomo.phase === "work" || pomo.phase === "break") ? "inline-block" : "none";
+  pomoPauseBtn.textContent = pomo.running ? "⏸ Pausar" : "▶ Continuar";
+}
+
+function tickPomodoro() {
+  pomo.remainingSeconds--;
+  if (pomo.remainingSeconds <= 0) {
+    pomo.remainingSeconds = 0;
+    clearInterval(pomo.intervalId);
+    pomo.running = false;
+    if (pomo.phase === "work") {
+      pomo.phase = "work-done";
+    } else if (pomo.phase === "break") {
+      pomo.phase = "break-done";
+    }
+  }
+  renderPomodoro();
+}
+
+function beginWork() {
+  pomo.phase = "work";
+  pomo.remainingSeconds = pomo.workMin * 60;
+  pomo.running = true;
+  pomo.intervalId = setInterval(tickPomodoro, 1000);
+  renderPomodoro();
+}
+
+function beginBreak() {
+  pomo.phase = "break";
+  pomo.remainingSeconds = pomo.breakMin * 60;
+  pomo.running = true;
+  pomo.intervalId = setInterval(tickPomodoro, 1000);
+  renderPomodoro();
+}
+
+function togglePause() {
+  if (pomo.running) {
+    pomo.running = false;
+    clearInterval(pomo.intervalId);
+  } else {
+    pomo.running = true;
+    pomo.intervalId = setInterval(tickPomodoro, 1000);
+  }
+  renderPomodoro();
+}
+
+function resetPomodoro() {
+  clearInterval(pomo.intervalId);
+  pomo.workMin = 20;
+  pomo.breakMin = 5;
+  pomo.phase = "setup";
+  pomo.remainingSeconds = pomo.workMin * 60;
+  pomo.running = false;
+  pomo.round = 1;
+  renderPomodoro();
+}
+
+pomoWorkAddBtn.addEventListener("click", () => {
+  pomo.workMin += 5;
+  if (pomo.phase === "setup") pomo.remainingSeconds = pomo.workMin * 60;
+  renderPomodoro();
+});
+pomoBreakAddBtn.addEventListener("click", () => {
+  pomo.breakMin += 1;
+  renderPomodoro();
+});
+
+pomoStartBtn.addEventListener("click", beginWork);
+pomoPauseBtn.addEventListener("click", togglePause);
+pomoResetBtn.addEventListener("click", resetPomodoro);
+pomoNoticeBtn.addEventListener("click", () => {
+  if (pomo.phase === "work-done") {
+    beginBreak();
+  } else if (pomo.phase === "break-done") {
+    pomo.round++;
+    beginWork();
+  }
+});
+
+renderPomodoro();
 
 // ---------- Init ----------
 
