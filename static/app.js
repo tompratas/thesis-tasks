@@ -703,21 +703,21 @@ const QUOTES = [
   "Pequenos progressos diários somam-se a grandes conquistas.",
   "Um passo de cada vez.",
   "Tu consegues!",
-  "Tenho orgulho em ti",
-  "Eu sei que não está a ser fácil, mas tu estás a dar o teu melhor orgulha te disso",
-  "Be patient. Sometimes you have to go through the worst to get the best",
-  "Im here for you, and will cheer for you every step of the way",
-  "I know its been hard for you lately but you're doing so well! I just wanted to tell how proud I am of you for trying your best and noy giving up",
-  "Its scary because its new not because you're incapable",
-  "Stop comparing your path to someone else's",
-  "You dont grow when you're confortable",
-  "Day by day, not in a day",
-  "You are not everything you want to be yet, but you are a lot of things you wanted to be 2 years ago",
-  "You're going to figure it out like you always do",
-  "What is meant for tou will always find it's way",
+  "Tenho orgulho em ti.",
+  "Eu sei que não está a ser fácil, mas tu estás a dar o teu melhor, orgulha-te disso.",
+  "Be patient. Sometimes you have to go through the worst to get the best.",
+  "I'm here for you, and I'll cheer for you every step of the way.",
+  "I know it's been hard for you lately, but you're doing so well! I just wanted to tell you how proud I am of you for trying your best and not giving up.",
+  "It's scary because it's new, not because you're incapable.",
+  "Stop comparing your path to someone else's.",
+  "You don't grow when you're comfortable.",
+  "Day by day, not in a day.",
+  "You are not everything you want to be yet, but you are a lot of things you wanted to be 2 years ago.",
+  "You're going to figure it out like you always do.",
+  "What is meant for you will always find its way.",
   "Your thesis is an opportunity to learn more, not a statement on your worth.",
-  "Where you're standing was once the goal",
-  "To be a star you must burn"
+  "Where you're standing was once the goal.",
+  "To be a star you must burn."
 ];
 
 let quoteIndex = 0;
@@ -767,12 +767,16 @@ restartQuoteTimer();
 // ---------- Pomodoro ----------
 
 const RING_CIRCUMFERENCE = 327;
+const BASE_TITLE = document.title;
 
 const pomo = {
   workMin: 20,
   breakMin: 5,
   phase: "setup", // "setup" | "work" | "work-done" | "break" | "break-done"
   remainingSeconds: 20 * 60,
+  endTime: null, // timestamp (ms) the current phase should end — used instead of
+                 // counting ticks, so the timer stays accurate even if the browser
+                 // throttles setInterval while the tab is minimized/inactive
   running: false,
   round: 1,
   intervalId: null,
@@ -850,12 +854,31 @@ function renderPomodoro() {
   pomoStartBtn.style.display = pomo.phase === "setup" ? "inline-block" : "none";
   pomoPauseBtn.style.display = (pomo.phase === "work" || pomo.phase === "break") ? "inline-block" : "none";
   pomoPauseBtn.textContent = pomo.running ? "⏸ Pausar" : "▶ Continuar";
+
+  updateDocumentTitle();
+}
+
+function updateDocumentTitle() {
+  if (pomo.phase === "work" || pomo.phase === "break") {
+    const icon = pomo.phase === "work" ? "🧠" : "☕";
+    const suffix = pomo.running ? "" : " (pausado)";
+    document.title = `${formatMMSS(pomo.remainingSeconds)} ${icon}${suffix} · ${BASE_TITLE}`;
+  } else if (pomo.phase === "work-done") {
+    document.title = `⏰ Trabalho concluído! · ${BASE_TITLE}`;
+  } else if (pomo.phase === "break-done") {
+    document.title = `🎉 Intervalo concluído! · ${BASE_TITLE}`;
+  } else {
+    document.title = BASE_TITLE;
+  }
+}
+
+function computeRemaining() {
+  return Math.max(0, Math.round((pomo.endTime - Date.now()) / 1000));
 }
 
 function tickPomodoro() {
-  pomo.remainingSeconds--;
+  pomo.remainingSeconds = computeRemaining();
   if (pomo.remainingSeconds <= 0) {
-    pomo.remainingSeconds = 0;
     clearInterval(pomo.intervalId);
     pomo.running = false;
     if (pomo.phase === "work") {
@@ -870,7 +893,9 @@ function tickPomodoro() {
 function beginWork() {
   pomo.phase = "work";
   pomo.remainingSeconds = pomo.workMin * 60;
+  pomo.endTime = Date.now() + pomo.remainingSeconds * 1000;
   pomo.running = true;
+  clearInterval(pomo.intervalId);
   pomo.intervalId = setInterval(tickPomodoro, 1000);
   renderPomodoro();
 }
@@ -878,16 +903,20 @@ function beginWork() {
 function beginBreak() {
   pomo.phase = "break";
   pomo.remainingSeconds = pomo.breakMin * 60;
+  pomo.endTime = Date.now() + pomo.remainingSeconds * 1000;
   pomo.running = true;
+  clearInterval(pomo.intervalId);
   pomo.intervalId = setInterval(tickPomodoro, 1000);
   renderPomodoro();
 }
 
 function togglePause() {
   if (pomo.running) {
+    pomo.remainingSeconds = computeRemaining();
     pomo.running = false;
     clearInterval(pomo.intervalId);
   } else {
+    pomo.endTime = Date.now() + pomo.remainingSeconds * 1000;
     pomo.running = true;
     pomo.intervalId = setInterval(tickPomodoro, 1000);
   }
@@ -900,10 +929,22 @@ function resetPomodoro() {
   pomo.breakMin = 5;
   pomo.phase = "setup";
   pomo.remainingSeconds = pomo.workMin * 60;
+  pomo.endTime = null;
   pomo.running = false;
   pomo.round = 1;
   renderPomodoro();
 }
+
+// The browser throttles (or fully pauses) setInterval while a tab is
+// minimized/backgrounded. Since the countdown is driven off a real
+// timestamp (pomo.endTime), the moment the tab becomes visible again we
+// immediately recompute the true remaining time and process any phase
+// change that should already have happened while it was hidden.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && pomo.running) {
+    tickPomodoro();
+  }
+});
 
 pomoWorkAddBtn.addEventListener("click", () => {
   pomo.workMin += 5;
