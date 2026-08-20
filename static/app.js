@@ -717,7 +717,8 @@ const QUOTES = [
   "What is meant for you will always find its way.",
   "Your thesis is an opportunity to learn more, not a statement on your worth.",
   "Where you're standing was once the goal.",
-  "To be a star you must burn."
+  "To be a star you must burn.",
+  "Só não se consegue fazer aquilo que a gente não quer"
 ];
 
 let quoteIndex = 0;
