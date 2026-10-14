@@ -1,70 +1,77 @@
-# Cronograma da Tese
+# Thesis Schedule
 
-Aplicação web simples (sem login) para gerir as tarefas e o cronograma da tese: lista de tarefas por categoria/capítulo, prazos, prioridades e um calendário mensal.
+A simple web application (without login) for managing thesis tasks and timelines: task lists by category/chapter, deadlines, priorities, and a monthly calendar.
 
-## Testar localmente
+## Run Locally
 
 ```bash
 pip install -r requirements.txt
 python app.py
 ```
 
-Depois abre http://127.0.0.1:5000 no browser.
+Then open http://127.0.0.1:5000 in your browser.
 
-## Colocar no Render (acesso pela internet)
+## Deploy to Render (Internet Access)
 
-### Passo 1 — Colocar o código no GitHub
-1. Cria um repositório novo no GitHub (pode ser privado).
-2. Dentro desta pasta:
+### Step 1 — Upload the Code to GitHub
+
+1. Create a new GitHub repository (it can be private).
+2. Inside this folder:
+
    ```bash
    git init
    git add .
-   git commit -m "Primeira versão do cronograma da tese"
+   git commit -m "Initial thesis schedule version"
    git branch -M main
-   git remote add origin https://github.com/TEU-UTILIZADOR/NOME-DO-REPO.git
+   git remote add origin https://github.com/YOUR-USERNAME/REPOSITORY-NAME.git
    git push -u origin main
    ```
 
-### Passo 2 — Criar o serviço no Render
-1. Cria conta em https://render.com (podes entrar com o GitHub).
-2. No dashboard, clica **New +** → **Blueprint**, e escolhe o repositório — o Render lê automaticamente o ficheiro `render.yaml` incluído aqui e configura tudo.
-   - Alternativa manual: **New +** → **Web Service**, escolhe o repositório, e usa:
+### Step 2 — Create the Service on Render
+
+1. Create an account at https://render.com (you can sign in with GitHub).
+2. In the dashboard, click **New +** → **Blueprint**, and select the repository. Render will automatically read the included `render.yaml` file and configure everything.
+   - Manual alternative: **New +** → **Web Service**, select the repository, and use:
      - **Build Command:** `pip install -r requirements.txt`
      - **Start Command:** `gunicorn app:app`
      - **Plan:** Free
-3. Clica **Deploy**. Após 1–2 minutos, o Render dá-te um URL do tipo `https://cronograma-tese.onrender.com` — é esse o link para acederes de qualquer lugar.
+3. Click **Deploy**. After 1–2 minutes, Render will provide a URL such as `https://thesis-schedule.onrender.com` — this is the link you can use to access the application from anywhere.
 
-### ⚠️ Importante sobre persistência dos dados
-O plano **Free** do Render tem disco *não-persistente*: sempre que fizeres um novo deploy (ou o serviço reiniciar), o ficheiro SQLite é apagado e as tarefas perdem-se. Para uma tese isto é arriscado, por isso recomendo uma destas opções:
+### ⚠️ Important About Data Persistence
 
-**Opção A (recomendada, grátis por 90 dias): usar uma base de dados PostgreSQL do Render**
-1. No dashboard do Render: **New +** → **PostgreSQL** → plano Free → cria.
-2. Copia o **Internal Database URL** que o Render mostra.
-3. No teu Web Service → **Environment** → adiciona a variável:
-   - `DATABASE_URL` = (cola o URL copiado)
-4. Faz **Manual Deploy** novamente. A app deteta automaticamente o `DATABASE_URL` e passa a usar PostgreSQL, que é persistente.
-   - Nota: a base de dados Free do Render expira 90 dias depois de criada — nessa altura crias outra e voltas a colar o novo `DATABASE_URL` (perde-se os dados nessa migração, a menos que exportes antes).
+The **Free** Render plan uses *non-persistent* storage: whenever you redeploy the service (or it restarts), the SQLite database file is deleted and all tasks are lost. For a thesis project, this can be risky, so I recommend one of the following options:
 
-**Opção B: disco persistente pago**
-No plano Starter ($7/mês) podes adicionar um "Persistent Disk" e montar em `/opt/render/project/src/instance`, mantendo o SQLite entre deploys sem precisar de Postgres.
+**Option A (recommended, free for 90 days): Use a PostgreSQL database on Render**
 
-Sem fazer nenhuma destas alterações, a app funciona perfeitamente — só perde as tarefas nos redeploys/reinícios, não durante o uso normal do dia a dia.
+1. In the Render dashboard: **New +** → **PostgreSQL** → Free plan → Create.
+2. Copy the **Internal Database URL** displayed by Render.
+3. Go to your Web Service → **Environment** → add the variable:
+   - `DATABASE_URL` = (paste the copied URL)
+4. Run **Manual Deploy** again. The application automatically detects `DATABASE_URL` and switches to PostgreSQL, which provides persistent storage.
+   - Note: The free Render PostgreSQL database expires 90 days after creation. At that point, create a new one and update the `DATABASE_URL` (unless you export the data beforehand, the existing data will be lost during migration).
 
-## Estrutura do projeto
+**Option B: Paid Persistent Disk**
 
+With the Starter plan ($7/month), you can add a Persistent Disk and mount it at `/opt/render/project/src/instance`, allowing SQLite data to remain available between deployments without needing PostgreSQL.
+
+Without either of these options, the application works perfectly fine — it will only lose data after redeployments or service restarts, not during normal daily use.
+
+## Project Structure
+
+```text
+app.py               # Flask backend (REST API + database)
+templates/index.html # Main page
+static/style.css     # Styling
+static/app.js        # Calendar, task list and form logic
+requirements.txt     # Python dependencies
+Procfile             # Startup command for Render
+render.yaml          # Automatic Render configuration (Blueprint)
 ```
-app.py               # backend Flask (API REST + base de dados)
-templates/index.html # página principal
-static/style.css     # estilo
-static/app.js        # lógica do calendário, lista de tarefas, formulário
-requirements.txt     # dependências Python
-Procfile              # comando de arranque para o Render
-render.yaml           # configuração automática do Render (Blueprint)
-```
 
-## Funcionalidades
-- Adicionar/editar/eliminar tarefas com título, notas, categoria (capítulo/fase da tese), data limite, prioridade e estado.
-- Calendário mensal com indicação visual dos prazos por prioridade; clicar num dia filtra a lista.
-- Barra de progresso por categoria ("estante" de capítulos) e progresso geral.
-- Filtros por estado (a fazer / em curso / concluída) e por categoria.
-- Sem necessidade de login — pensado para uso individual.
+## Features
+
+- Add, edit, and delete tasks with title, notes, category (thesis chapter/phase), deadline, priority, and status.
+- Monthly calendar with visual deadline indicators based on priority; clicking a day filters the task list.
+- Progress tracking by category ("chapter bookshelf") and overall progress.
+- Filters by status (To Do / In Progress / Completed) and by category.
+- No login required — designed for individual use.
